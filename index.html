@@ -123,6 +123,54 @@ function makeRoom(){
  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;game.appendChild(renderer.domElement);
  scene.add(new THREE.HemisphereLight(0x7895a9,0x111820,1.2));
  const ambient=new THREE.AmbientLight(0x5d7180,.38);scene.add(ambient);
+ // Industrial ceiling structure, ventilation ducts and service conduits
+ for(const x of [-2.55,-1.95,1.95,2.55]){
+   cylinder(.055,.055,45,M.black,x,3.72,-11,scene,8).rotation.x=Math.PI/2;
+   cylinder(.025,.025,45,M.trim,x,3.59,-11,scene,8).rotation.x=Math.PI/2;
+ }
+ for(let z=8;z>-34;z-=4){
+   box(6.9,.12,.16,M.black,0,3.88,z);
+   box(.18,.18,.3,M.metal,-3.27,3.5,z);
+   box(.18,.18,.3,M.metal,3.27,3.5,z);
+ }
+ // Recessed ventilation grilles and wall-mounted control terminals
+ for(const z of [5,-3,-11,-19,-27]){
+   for(const x of [-3.37,3.37]){
+     const side=x<0?1:-1;
+     box(.055,.58,1.12,M.black,x,3.0,z);
+     for(let k=0;k<7;k++)box(.025,.035,.94,M.trim,x+side*.035,2.79+k*.065,z);
+     box(.065,.66,.035,M.metal,x+side*.04,3.0,z-.58);
+     box(.065,.66,.035,M.metal,x+side*.04,3.0,z+.58);
+   }
+ }
+ // Long glass observation windows, with heavy frames and faint interior glow
+ for(const z of [-1,-9,-17,-25]){
+   box(.07,1.48,2.65,M.black,-3.36,2.0,z);
+   box(.035,1.22,2.36,M.glass,-3.31,2.0,z);
+   box(.06,.055,2.5,M.trim,-3.27,2.73,z);
+   box(.06,.055,2.5,M.trim,-3.27,1.27,z);
+   box(.06,1.42,.055,M.trim,-3.27,2.0,z-1.2);
+   box(.06,1.42,.055,M.trim,-3.27,2.0,z+1.2);
+   const glow=new THREE.PointLight(0x2b7592,.48,3);glow.position.set(-3.0,2.0,z);scene.add(glow);
+ }
+ // Floor service plates, drainage channels and hazard chevrons
+ for(let z=8;z>-34;z-=4){
+   box(2.1,.018,1.15,M.wallDark,0,-.025,z);
+   box(1.92,.012,.025,M.metal,0,-.012,z-.52);
+   box(1.92,.012,.025,M.metal,0,-.012,z+.52);
+   for(const x of [-.82,.82])cylinder(.025,.025,.025,M.trim,x,-.005,z,scene,8);
+ }
+ for(let i=0;i<8;i++){
+   const stripe=box(.12,.015,.55,M.yellow,-2.7+i*.24,-.018,-28.3);
+   stripe.rotation.y=.12;
+ }
+ // Wall signage with illuminated facility numbering
+ for(const z of [4,-8,-20]){
+   box(.07,.55,1.65,M.black,-3.36,2.95,z);
+   box(.035,.035,1.28,M.cyan,-3.31,3.14,z);
+   box(.035,.025,.92,M.trim,-3.31,2.94,z);
+   box(.035,.025,.65,M.trim,-3.31,2.82,z);
+ }
  // Long enclosed laboratory corridor
  box(7,.35,48,M.floor,0,-.22,-11);
  box(7,.18,48,M.wallDark,0,4.05,-11);
@@ -150,7 +198,24 @@ function makeRoom(){
  // warning markings near exit
  for(let i=0;i<7;i++)box(.16,.012,.48,M.yellow,-2.5+i*.35,-.025,-29);
  makeDoor(-31.5);
- // starting location
+ // Exit frame, access reader and overhead emergency beacon
+ box(2.75,.16,.28,M.black,0,2.92,-31.48);
+ box(1.25,.055,.08,M.cyan,0,3.02,-31.28);
+ box(.42,.48,.12,M.black,1.55,1.55,-31.25);
+ box(.22,.22,.035,M.red,1.55,1.57,-31.16);
+ box(.13,.06,.035,M.cyan,1.55,1.37,-31.15);
+ const beacon=new THREE.PointLight(0x9d2928,1.8,5);beacon.position.set(0,3.15,-31.2);scene.add(beacon);
+ // Extra carts and lab equipment break up the long corridor silhouette
+ for(const z of [-7,-25]){
+   const x=z===-7?2.25:-2.2;
+   box(.8,.95,.52,M.black,x,.48,z);
+   box(.84,.08,.56,M.metal,x,.98,z);
+   box(.55,.04,.035,M.cyan,x,1.04,z-.16);
+   for(const dx of [-.27,.27])for(const dz of [-.17,.17])cylinder(.07,.07,.05,M.black,x+dx,.08,z+dz,scene,10);
+   box(.28,.22,.08,M.glass,x,.72,z-.29);
+   box(.12,.025,.02,M.red,x,.74,z-.34);
+ }
+ // Starting location
  player=new THREE.Group();scene.add(player);player.position.set(0,0,7);
  const body=new THREE.Group();player.add(body);player.userData.body=body;
  const suit=mat(0x253541,.8,.1),suitLight=mat(0x9eb5c0,.65,.15),visor=mat(0x111f2a,.25,.45,0x183849,.4);
@@ -190,6 +255,16 @@ function makeRoom(){
  box(.9,.02,.025,M.white,-3.30,2.38,-11);
  // small floor lights toward exit
  for(let z=-17;z>-31;z-=3){box(.12,.04,.12,M.cyan,-3.35,.15,z);box(.12,.04,.12,M.cyan,3.35,.15,z);}
+ // Floating dust motes catch the flashlight beam
+ const dustCount=180, dustPos=new Float32Array(dustCount*3);
+ for(let i=0;i<dustCount;i++){
+   dustPos[i*3]=(Math.random()-.5)*6.2;
+   dustPos[i*3+1]=.25+Math.random()*3.15;
+   dustPos[i*3+2]=7-Math.random()*39;
+ }
+ const dustGeo=new THREE.BufferGeometry();dustGeo.setAttribute('position',new THREE.BufferAttribute(dustPos,3));
+ const dustMat=new THREE.PointsMaterial({color:0xb6d6e3,size:.025,transparent:true,opacity:.32,depthWrite:false});
+ scene.add(new THREE.Points(dustGeo,dustMat));
 }
 function updateMission(title,txt){$('missionTitle').textContent=title;$('missionText').textContent=txt}
 function toast(msg){$('toast').textContent=msg;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2200)}
