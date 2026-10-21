@@ -79,7 +79,8 @@ let scene,camera,renderer,player,flashlight,flashTarget,started=false,flashOn=tr
 let yaw=0,pitch=.12,joyX=0,joyY=0,dragging=false,lastX=0,lastY=0,runHeld=false;
 const clock=new THREE.Clock();
 const colliders=[];
-const world={card:null,note:null,door:null,doorPanel:null};
+const dynamicLights=[];
+const world={card:null,note:null,door:null,doorPanel:null,exitSign:null};
 const mat=(color,roughness=.8,metalness=.1,emissive=0,emissiveIntensity=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness,emissive,emissiveIntensity});
 const M={
  floor:mat(0x26323b,.92),wall:mat(0x3c4a53,.85),wallDark:mat(0x17232d,.9),metal:mat(0x657781,.45,.7),
@@ -101,6 +102,16 @@ function makeLamp(x,z){
  box(1.7,.08,.42,M.black,x,3.82,z);
  box(1.35,.035,.25,M.cyan,x,3.76,z);
  const light=new THREE.PointLight(0x9bcde3,4,8,2);light.position.set(x,3.55,z);scene.add(light);
+}
+function makeLitSign(text,x,y,z,w=1.5,h=.32){
+ const canvas=document.createElement('canvas');canvas.width=512;canvas.height=128;
+ const ctx=canvas.getContext('2d');
+ ctx.fillStyle='#07121b';ctx.fillRect(0,0,512,128);
+ ctx.strokeStyle='#80c7df';ctx.lineWidth=5;ctx.strokeRect(5,5,502,118);
+ ctx.fillStyle='#bcecff';ctx.font='bold 34px system-ui, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,256,64);
+ const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;
+ const material=new THREE.MeshBasicMaterial({map:tex,transparent:false,side:THREE.DoubleSide});
+ const sign=new THREE.Mesh(new THREE.PlaneGeometry(w,h),material);sign.position.set(x,y,z);scene.add(sign);return sign;
 }
 function makeDoor(z){
  const g=new THREE.Group();scene.add(g);
@@ -200,11 +211,21 @@ function makeRoom(){
  makeDoor(-31.5);
  // Exit frame, access reader and overhead emergency beacon
  box(2.75,.16,.28,M.black,0,2.92,-31.48);
+ world.exitSign=makeLitSign('SECTOR 07  /  EXIT',0,2.66,-31.25,1.75,.32);
  box(1.25,.055,.08,M.cyan,0,3.02,-31.28);
  box(.42,.48,.12,M.black,1.55,1.55,-31.25);
  box(.22,.22,.035,M.red,1.55,1.57,-31.16);
  box(.13,.06,.035,M.cyan,1.55,1.37,-31.15);
- const beacon=new THREE.PointLight(0x9d2928,1.8,5);beacon.position.set(0,3.15,-31.2);scene.add(beacon);
+ const beacon=new THREE.PointLight(0xff302b,2.5,6,2);beacon.position.set(0,3.15,-31.2);scene.add(beacon);dynamicLights.push({light:beacon,base:2.5,speed:5.5,phase:0});
+ // Pulsing red emergency lamps add depth and make the lockdown feel active
+ for(const z of [-4,-16,-28]){
+   for(const x of [-3.15,3.15]){
+     box(.18,.12,.32,M.black,x,3.18,z);
+     box(.1,.07,.2,M.red,x,3.18,z-.02);
+     const warning=new THREE.PointLight(0xff332b,1.25,4,2);warning.position.set(x<0?-2.9:2.9,3.05,z);scene.add(warning);
+     dynamicLights.push({light:warning,base:1.25,speed:3.2,phase:(z*-0.2)+(x<0?0:1.7)});
+   }
+ }
  // Extra carts and lab equipment break up the long corridor silhouette
  for(const z of [-7,-25]){
    const x=z===-7?2.25:-2.2;
@@ -219,21 +240,36 @@ function makeRoom(){
  player=new THREE.Group();scene.add(player);player.position.set(0,0,7);
  const body=new THREE.Group();player.add(body);player.userData.body=body;
  const suit=mat(0x253541,.8,.1),suitLight=mat(0x9eb5c0,.65,.15),visor=mat(0x111f2a,.25,.45,0x183849,.4);
+ const armor=mat(0x405563,.52,.38),rubber=mat(0x101820,.72,.18);
+ // Layered pressure suit silhouette: torso, armor plates, helmet and reinforced joints
  cylinder(.28,.34,.72,suit,0,1.08,0,body,10);
+ box(.43,.42,.16,armor,0,1.18,-.16,body);
+ box(.29,.09,.035,M.cyan,0,1.27,-.255,body);
  sphere(.22,suitLight,0,1.61,0,body,12);
  sphere(.17,visor,0,1.64,-.07,body,12);
- box(.38,.1,.12,M.cyan,0,1.2,-.28,body);
- for(const x of [-.15,.15]){
-   cylinder(.085,.1,.65,suit,x,.42,0,body,8);
-   cylinder(.075,.075,.62,suit,x*1.65,.98,0,body,8);
+ box(.24,.035,.018,M.cyan,0,1.66,-.232,body);
+ for(const x of [-.34,.34]){
+   sphere(.13,armor,x,1.35,0,body,10);
+   cylinder(.085,.1,.65,suit,x*.44,.42,0,body,8);
+   cylinder(.075,.075,.62,suit,x*.48,.98,0,body,8);
+   box(.15,.16,.12,armor,x*.48,.63,-.025,body);
+   box(.13,.08,.2,rubber,x*.48,.12,-.025,body);
+   box(.13,.23,.08,armor,x*.48,1.0,-.11,body);
  }
- // small backpack
+ // Waist utility belt, chest module and a more readable field pack
+ cylinder(.3,.3,.1,rubber,0,.83,0,body,12);
+ box(.16,.12,.045,M.yellow,.12,.84,-.2,body);
  box(.34,.42,.17,M.black,0,1.15,.25,body);
  box(.22,.08,.04,M.red,0,1.27,.35,body);
+ box(.18,.16,.035,M.cyan,0,1.13,.35,body);
  // flashlight cone points forward along -Z
  flashlight=new THREE.SpotLight(0xd9efff,28,19,Math.PI/7,.42,1.35);
  flashlight.position.set(0,1.55,0);player.add(flashlight);
  flashTarget=new THREE.Object3D();flashTarget.position.set(0,1.1,-5);player.add(flashTarget);flashlight.target=flashTarget;
+ // A subtle translucent cone makes the flashlight beam visible even on dim screens
+ const beamMat=new THREE.MeshBasicMaterial({color:0x9bdcff,transparent:true,opacity:.075,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
+ const beam=new THREE.Mesh(new THREE.ConeGeometry(1.42,5.2,24,1,true),beamMat);
+ beam.rotation.x=Math.PI/2;beam.position.set(0,1.48,-2.6);player.add(beam);player.userData.beam=beam;
  const smallGlow=new THREE.PointLight(0x7c9cac,.8,3);smallGlow.position.set(0,1.4,0);player.add(smallGlow);
  // Keycard on a waist-high cart
  box(1.25,.7,.65,M.wallDark,-1.7,.35,-15);
@@ -293,7 +329,7 @@ function interact(){
  if(nearby==='door'){
    if(!hasCard){toast('門禁拒絕：需要有效門禁卡');return}
    if(!readNote){toast('建議先讀取研究桌上的紀錄');return}
-   doorOpen=true;world.doorPanel.visible=false;$('sys').textContent='EXIT UNLOCKED';
+   doorOpen=true;world.doorPanel.visible=false;if(world.exitSign)world.exitSign.visible=false;$('sys').textContent='EXIT UNLOCKED';
    updateMission('出口已開啟','穿過出口，完成本次探索。');toast('門鎖解除。出口已開啟。');
    setTimeout(()=>{$('endScreen').style.display='flex'},1200);return;
  }
@@ -302,7 +338,7 @@ function interact(){
 function resetGame(){
  hasCard=false;readNote=false;doorOpen=false;yaw=0;pitch=.12;joyX=0;joyY=0;
  player.position.set(0,0,7);player.rotation.y=0;world.card.visible=true;world.note.visible=true;world.doorPanel.visible=true;
- $('sys').textContent='FACILITY OFFLINE';updateMission('尋找門禁卡','前往走廊深處，尋找門禁卡並打開出口。');
+ $('sys').textContent='FACILITY OFFLINE';if(world.exitSign)world.exitSign.visible=true;updateMission('尋找門禁卡','前往走廊深處，尋找門禁卡並打開出口。');
  $('endScreen').style.display='none';toast('任務重新開始');
 }
 function setupControls(){
@@ -359,7 +395,8 @@ function update(dt){
  camera.position.lerp(desired,1-Math.exp(-dt*5));
  const target=new THREE.Vector3(player.position.x+lookDir.x*2,player.position.y+1.1+pitch*1.5,player.position.z+lookDir.z*2);
  camera.lookAt(target);
- flashlight.visible=flashOn;flashlight.intensity=flashOn?28:0;
+ flashlight.visible=flashOn;flashlight.intensity=flashOn?28:0;if(player.userData.beam)player.userData.beam.visible=flashOn;
+ for(const item of dynamicLights){const wave=.58+.42*Math.max(0,Math.sin(clock.elapsedTime*item.speed+item.phase));item.light.intensity=item.base*wave;}
  findNearby();
 }
 const keys={};
