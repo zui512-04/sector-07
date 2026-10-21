@@ -19,6 +19,19 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#05090e;col
 .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#dfb878;box-shadow:0 0 8px #dfb878;margin-right:6px}
 .mission{margin-top:17px;padding:7px 12px;border-left:2px solid #9fc5d6;background:linear-gradient(90deg,#101d28cc,transparent);max-width:280px}
 .mission small{font-size:9px;letter-spacing:2px;color:#90b4c7}.mission strong{display:block;font-size:13px;margin-top:4px;font-weight:650}.mission p{font-size:11px;line-height:1.5;color:#a5b7c2;margin:4px 0 0}
+#caseBtn{position:fixed;z-index:6;right:15px;top:calc(env(safe-area-inset-top) + 78px);border:1px solid #7e9ba9a0;background:#09131ee8;color:#d9edf5;padding:9px 12px;font-size:10px;letter-spacing:1px;touch-action:manipulation}
+#caseBtn span{color:#a8d8e9;margin-left:5px}
+#casePanel{display:none;position:fixed;z-index:25;inset:0;background:#02060bdc;align-items:center;justify-content:center;padding:22px}
+.caseCard{width:min(430px,100%);max-height:82vh;overflow:auto;border:1px solid #7294a5a0;background:linear-gradient(150deg,#14232e,#070d14);padding:21px;box-shadow:0 20px 70px #000b}
+.caseHead{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #55708066;padding-bottom:12px}
+.caseHead h2{font-size:18px;letter-spacing:2px;margin:0}
+.caseClose{border:1px solid #6c8797;background:#0b1720;color:#e5f5fb;padding:7px 11px}
+.caseSection{font-size:9px;letter-spacing:2px;color:#8db9cc;margin:18px 0 8px}
+.caseItem{display:flex;gap:11px;align-items:flex-start;border:1px solid #54708055;background:#0b151eaa;padding:11px;margin-top:7px}
+.caseIcon{font-size:20px;width:28px;text-align:center}
+.caseItem b{display:block;font-size:12px;font-weight:650;color:#e2f2f8}
+.caseItem p{font-size:11px;line-height:1.65;color:#9eb2bf;margin:4px 0 0}
+.caseState{font-size:9px;color:#9bcddd;letter-spacing:1px;margin-left:auto;white-space:nowrap}
 #toast{position:fixed;z-index:9;top:32%;left:50%;transform:translate(-50%,-8px);padding:11px 15px;max-width:86%;width:max-content;text-align:center;background:#07121deF;border:1px solid #68889a;color:#eef9ff;font-size:12px;letter-spacing:.3px;opacity:0;transition:.22s;pointer-events:none}
 #toast.show{opacity:1;transform:translate(-50%,0)}
 #bottom{position:fixed;z-index:5;left:0;right:0;bottom:0;padding:0 16px calc(env(safe-area-inset-bottom) + 15px);display:flex;align-items:flex-end;justify-content:space-between;pointer-events:none}
@@ -50,6 +63,16 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#05090e;col
  <div class="top"><div class="brand">RESEARCH FACILITY / 07<b>第七號禁區</b></div><div class="status"><span class="dot"></span><span id="sys">SYSTEM STANDBY</span></div></div>
  <div class="mission"><small>OBJECTIVE / 任務目標</small><strong id="missionTitle">恢復行動能力</strong><p id="missionText">前往走廊深處，尋找門禁卡並打開出口。</p></div>
 </div>
+<button id="caseBtn">任務檔案 <span id="caseCount">0/3</span></button>
+<div id="casePanel"><div class="caseCard">
+ <div class="caseHead"><div><div class="kicker">PERSONAL RECORD / S-07</div><h2>探索檔案</h2></div><button class="caseClose" id="caseClose">關閉 ✕</button></div>
+ <div class="caseSection">持有物品 / INVENTORY</div>
+ <div class="caseItem"><div class="caseIcon">▣</div><div><b>研究設施門禁卡</b><p id="invCard">尚未取得。前往走廊深處尋找。</p></div><div class="caseState" id="stateCard">未取得</div></div>
+ <div class="caseSection">已收集線索 / EVIDENCE LOG</div>
+ <div class="caseItem"><div class="caseIcon">▤</div><div><b>研究紀錄 02:17</b><p id="logNote">尚未讀取。研究桌位於走廊右側。</p></div><div class="caseState" id="stateNote">未讀取</div></div>
+ <div class="caseItem"><div class="caseIcon">⌘</div><div><b>控制終端記錄</b><p id="logTerminal">尚未調查。走廊側邊的控制面板可能留有系統紀錄。</p></div><div class="caseState" id="stateTerminal">未調查</div></div>
+ <p class="warning">提示：控制終端是額外線索，不影響完成本章。調查物件時，靠近後按下「互動」。</p>
+</div></div>
 <div id="toast"></div>
 <div id="lookHelp">拖曳右側畫面<br>旋轉視角</div>
 <div id="bottom">
@@ -80,7 +103,8 @@ let yaw=0,pitch=.12,joyX=0,joyY=0,dragging=false,lastX=0,lastY=0,runHeld=false;
 const clock=new THREE.Clock();
 const colliders=[];
 const dynamicLights=[];
-const world={card:null,note:null,door:null,doorPanel:null,exitSign:null};
+const world={card:null,note:null,door:null,doorPanel:null,exitSign:null,terminal:null};
+let readTerminal=false;
 const mat=(color,roughness=.8,metalness=.1,emissive=0,emissiveIntensity=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness,emissive,emissiveIntensity});
 const M={
  floor:mat(0x26323b,.92),wall:mat(0x3c4a53,.85),wallDark:mat(0x17232d,.9),metal:mat(0x657781,.45,.7),
@@ -289,6 +313,15 @@ function makeRoom(){
  box(1.45,.48,.06,M.black,-3.35,2.45,-11);
  box(1.18,.025,.025,M.red,-3.30,2.52,-11);
  box(.9,.02,.025,M.white,-3.30,2.38,-11);
+ // Wall-mounted security terminal with screen, keypad and status lights
+ world.terminal=new THREE.Group();world.terminal.position.set(3.08,1.55,-11.8);scene.add(world.terminal);
+ box(.12,.92,.72,M.black,0,0,0,world.terminal);
+ box(.035,.42,.48,M.glass,-.078,.18,0,world.terminal);
+ box(.025,.025,.34,M.cyan,-.099,.29,0,world.terminal);
+ box(.025,.018,.3,M.cyan,-.099,.18,0,world.terminal);
+ box(.025,.018,.25,M.trim,-.099,.08,0,world.terminal);
+ for(let i=0;i<3;i++)box(.03,.045,.045,i===0?M.red:M.cyan,-.1,-.27+i*.11,.2,world.terminal);
+ box(.025,.22,.3,M.metal,-.09,-.24,-.13,world.terminal);
  // small floor lights toward exit
  for(let z=-17;z>-31;z-=3){box(.12,.04,.12,M.cyan,-3.35,.15,z);box(.12,.04,.12,M.cyan,3.35,.15,z);}
  // Floating dust motes catch the flashlight beam
@@ -310,21 +343,35 @@ function findNearby(){
  nearby=null;
  if(!hasCard&&world.card&&distanceTo(world.card)<2.25)nearby='card';
  else if(!readNote&&world.note&&distanceTo(world.note)<2.5)nearby='note';
+ else if(!readTerminal&&world.terminal&&distanceTo(world.terminal)<2.65)nearby='terminal';
  else if(world.door&&distanceTo(world.door)<3.2)nearby='door';
  $('interact').classList.toggle('active',!!nearby);
  $('interact').querySelector('span:last-child').textContent=nearby?'使用':'互動';
 }
+function renderCaseFile(){
+ $('stateCard').textContent=hasCard?'已取得':'未取得';
+ $('invCard').textContent=hasCard?'S-07 門禁卡已收進隨身裝備。':'尚未取得。前往走廊深處尋找。';
+ $('stateNote').textContent=readNote?'已記錄':'未讀取';
+ $('logNote').textContent=readNote?'02:17 — 封鎖程序由設施內部啟動。紀錄末尾提到「七號樣本已轉移」。':'尚未讀取。研究桌位於走廊右側。';
+ $('stateTerminal').textContent=readTerminal?'已調查':'未調查';
+ $('logTerminal').textContent=readTerminal?'系統紀錄：封鎖指令來自隔離區內部；中央監控訊號在 02:19 中斷。':'尚未調查。走廊側邊的控制面板可能留有系統紀錄。';
+ $('caseCount').textContent=((hasCard?1:0)+(readNote?1:0)+(readTerminal?1:0))+'/3';
+}
 function interact(){
  findNearby();
  if(nearby==='card'){
-   hasCard=true;world.card.visible=false;$('sys').textContent='ACCESS CARD ACQUIRED';
+   hasCard=true;world.card.visible=false;$('sys').textContent='ACCESS CARD ACQUIRED';renderCaseFile();
    updateMission('讀取研究紀錄','門禁卡已取得。前往走廊右側的研究桌，查看留下的紀錄。');
    toast('取得門禁卡：S-07 / ACCESS GRANTED');return;
  }
  if(nearby==='note'){
-   readNote=true;world.note.visible=false;
+   readNote=true;world.note.visible=false;renderCaseFile();
    updateMission('前往出口','紀錄顯示：封鎖系統仍在運作。前往走廊盡頭的出口。');
    toast('研究紀錄：02:17，封鎖程序由內部啟動。');return;
+ }
+ if(nearby==='terminal'){
+   readTerminal=true;renderCaseFile();
+   toast('終端紀錄已保存：隔離區內部曾發出封鎖指令。');return;
  }
  if(nearby==='door'){
    if(!hasCard){toast('門禁拒絕：需要有效門禁卡');return}
@@ -336,8 +383,8 @@ function interact(){
  toast('附近沒有可互動的物件');
 }
 function resetGame(){
- hasCard=false;readNote=false;doorOpen=false;yaw=0;pitch=.12;joyX=0;joyY=0;
- player.position.set(0,0,7);player.rotation.y=0;world.card.visible=true;world.note.visible=true;world.doorPanel.visible=true;
+ hasCard=false;readNote=false;readTerminal=false;doorOpen=false;yaw=0;pitch=.12;joyX=0;joyY=0;
+ player.position.set(0,0,7);player.rotation.y=0;world.card.visible=true;world.note.visible=true;world.doorPanel.visible=true;renderCaseFile();
  $('sys').textContent='FACILITY OFFLINE';if(world.exitSign)world.exitSign.visible=true;updateMission('尋找門禁卡','前往走廊深處，尋找門禁卡並打開出口。');
  $('endScreen').style.display='none';toast('任務重新開始');
 }
@@ -361,6 +408,9 @@ function setupControls(){
  $('run').addEventListener('pointerdown',e=>{e.preventDefault();runHeld=true;$('run').classList.add('active')});
  ['pointerup','pointercancel','pointerleave'].forEach(ev=>$('run').addEventListener(ev,()=>{runHeld=false;$('run').classList.remove('active')}));
  $('interact').addEventListener('click',interact);
+ $('caseBtn').addEventListener('click',()=>{$('casePanel').style.display='flex';renderCaseFile()});
+ $('caseClose').addEventListener('click',()=>{$('casePanel').style.display='none'});
+ $('casePanel').addEventListener('click',e=>{if(e.target===$('casePanel'))$('casePanel').style.display='none'});
  $('start').addEventListener('click',()=>{$('intro').style.display='none';started=true;setFlash(true);toast('設施已封鎖。找到門禁卡。');});
  $('again').addEventListener('click',resetGame);
  window.addEventListener('keydown',e=>{if(e.key==='Shift')runHeld=true;if(e.key==='f')setFlash(!flashOn);if(e.key==='e'||e.key===' ')interact();});
@@ -408,7 +458,7 @@ function animate(){
  if(scene&&player){update(dt);renderer.render(scene,camera)}
 }
 try{
- makeRoom();setupControls();
+ makeRoom();setupControls();renderCaseFile();
  window.addEventListener('resize',()=>{if(!camera||!renderer)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5))});
  $('sys').textContent='FACILITY OFFLINE';animate();
 }catch(err){
