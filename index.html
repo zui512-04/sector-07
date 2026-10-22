@@ -120,7 +120,7 @@ const colliders=[];
 const dynamicLights=[];
 const world={card:null,note:null,door:null,doorPanel:null,exitSign:null,terminal:null};
 const enemyMaterials={body:null,eye:null};
-let readTerminal=false;
+let readTerminal=false,readRecorder=false;
 const mat=(color,roughness=.8,metalness=.1,emissive=0,emissiveIntensity=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness,emissive,emissiveIntensity});
 const M={
  floor:mat(0x26323b,.92),wall:mat(0x3c4a53,.85),wallDark:mat(0x17232d,.9),metal:mat(0x657781,.45,.7),
