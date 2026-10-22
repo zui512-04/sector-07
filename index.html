@@ -67,6 +67,80 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080907;col
 .caughtCard h2{font-size:clamp(28px,8vw,38px);letter-spacing:3px;color:#f2d9c7;margin:12px 0}.caughtCard p{font-size:12px;line-height:1.8;color:#c0b4a7}
 .endCard{max-width:380px;border:1px solid #8d784b;padding:28px;background:#11120fee}.endCard h2{letter-spacing:3px;font-size:25px}.endCard p{font-size:12px;line-height:1.8;color:#b4b1a4}
 @media(max-width:370px){#joy{width:116px;height:116px}#base{inset:7px}#knob{left:35px;top:35px} .action{width:52px;height:55px}.actions{gap:6px}.mission{margin-top:12px}}
+
+/* Responsive layout: portrait and landscape, with safe-area padding and a clear central play space. */
+html,body{min-height:100%;min-height:100dvh}
+#game,canvas{width:100%;height:100%;height:100dvh}
+#bottom{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right));padding-bottom:max(10px,env(safe-area-inset-bottom));}
+#hud{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right));}
+#caseBtn{right:max(12px,env(safe-area-inset-right));}
+#lookHelp{right:max(12px,env(safe-area-inset-right));}
+#casePanel{padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));}
+.caseCard{max-height:calc(100dvh - 20px);overscroll-behavior:contain}
+#intro,#endScreen,#caughtScreen{padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));overflow:auto}
+.introCard,.endCard,.caughtCard{max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain}
+button{max-width:100%}
+@media (orientation:portrait){
+ .mission{max-width:min(68vw,290px);margin-top:10px;padding:7px 9px}
+ .mission p{font-size:10px;line-height:1.4}
+ .mission strong{font-size:12px}
+ .brand b{font-size:clamp(15px,4.6vw,20px)}
+ .status{max-width:48vw;white-space:normal;overflow-wrap:anywhere;font-size:8px;padding:7px 8px}
+ #caseBtn{top:calc(env(safe-area-inset-top) + 112px);font-size:9px;padding:8px 9px}
+ #joy{width:clamp(96px,29vw,126px);height:clamp(96px,29vw,126px)}
+ #knob{left:calc(50% - 23px);top:calc(50% - 23px)}
+ .actions{gap:clamp(5px,1.7vw,9px)}
+ .action{width:clamp(48px,14vw,59px);height:clamp(48px,14vw,59px);font-size:8px}
+ #interact{width:clamp(54px,15.5vw,67px);height:clamp(54px,15.5vw,67px)}
+ #lookHelp{bottom:calc(env(safe-area-inset-bottom) + 88px);font-size:8px}
+}
+@media (orientation:landscape){
+ #hud{padding-top:calc(env(safe-area-inset-top) + 7px)}
+ .brand{font-size:8px}.brand b{font-size:16px;margin-top:1px}
+ .status{padding:5px 8px;font-size:8px}
+ .mission{margin-top:7px;max-width:min(39vw,340px);padding:5px 9px}
+ .mission small{font-size:8px}.mission strong{font-size:11px;margin-top:2px}.mission p{font-size:9px;line-height:1.3;margin-top:2px}
+ #caseBtn{top:calc(env(safe-area-inset-top) + 8px);right:max(12px,env(safe-area-inset-right));padding:7px 9px;font-size:9px}
+ #bottom{padding-bottom:max(7px,env(safe-area-inset-bottom));}
+ #joy{width:88px;height:88px}
+ #base{inset:6px}
+ #knob{width:34px;height:34px;left:27px;top:27px}
+ .actions{gap:6px}
+ .action{width:49px;height:49px;font-size:8px;gap:2px}
+ .action .ico{font-size:16px}
+ #interact{width:55px;height:55px}
+ #interact .ico{font-size:18px}
+ #hint{font-size:7px;letter-spacing:1px}
+ #lookHelp{bottom:calc(env(safe-area-inset-bottom) + 61px);font-size:8px}
+ #toast{top:45%;max-width:76%;font-size:11px}
+}
+@media (max-height:500px){
+ #hud{padding-top:calc(env(safe-area-inset-top) + 4px)}
+ .mission{margin-top:4px;max-width:min(36vw,300px);padding:4px 7px}
+ .mission p{display:none}
+ #caseBtn{top:calc(env(safe-area-inset-top) + 5px)}
+ #joy{width:76px;height:76px}
+ #base{inset:5px}
+ #knob{width:30px;height:30px;left:23px;top:23px}
+ .action{width:43px;height:43px}
+ #interact{width:49px;height:49px}
+ #lookHelp{display:none}
+ .introCard,.endCard,.caughtCard{padding:15px!important}
+ .introCard h1{font-size:30px;margin:7px 0}
+ .introCard p{font-size:11px;line-height:1.55;margin:5px 0}
+ .introCard .line{margin:10px 0}
+ .introCard:after{margin-top:9px;padding-top:7px}
+ .primary{padding:11px;margin-top:9px}
+}
+@media (max-width:360px) and (orientation:portrait){
+ #hud .top{gap:5px}
+ .brand b{font-size:15px;letter-spacing:1px}
+ .mission{max-width:66vw}
+ #caseBtn{right:8px;padding:7px}
+ .caseCard{padding:14px}
+ .caseItem{gap:7px;padding:8px}
+}
+
 </style>
 </head>
 <body>
@@ -681,7 +755,8 @@ function animate(){
 }
 try{
  makeRoom();makeChapterTwo();setupControls();renderCaseFile();
- window.addEventListener('resize',()=>{if(!camera||!renderer)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5))});
+ function resizeGame(){if(!camera||!renderer)return;const w=window.innerWidth,h=window.innerHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));}
+ window.addEventListener('resize',resizeGame,{passive:true});window.addEventListener('orientationchange',()=>setTimeout(resizeGame,120),{passive:true});
  $('sys').textContent='FACILITY OFFLINE';animate();
 }catch(err){
  document.body.innerHTML='<div style="padding:24px;color:#eaf4fa;font-family:system-ui;background:#070b11;height:100vh"><h2>第七號禁區載入失敗</h2><p>請確認網路正常，並使用支援 WebGL 的新版 Chrome 開啟。</p><pre style="white-space:pre-wrap;color:#e7adad">'+String(err)+'</pre></div>';
