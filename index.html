@@ -262,12 +262,14 @@ function makeChapterTwo(){
  makeLitSign('OBSERVATION CHAMBER / 07',0,3.2,-34.85,2.8,.42);box(2.9,.08,.12,M.black,0,3.5,-35);box(2.6,.04,.08,M.yellow,0,3.55,-35);
  // Central containment pod, lit from within by an unstable amber core.
  chapter2.pod=new THREE.Group();chapter2.pod.position.set(0,0,-42.2);scene.add(chapter2.pod);
+ // Solid footprint around the central containment pod; the character can no longer walk through the glass chamber.
+ addSolid(0,-42.2,2.05,2.05,'containment pod');
  cylinder(.92,.92,2.15,M.black,0,1.08,0,chapter2.pod,24);cylinder(.78,.78,1.86,M.glass,0,1.13,0,chapter2.pod,24);cylinder(.69,.69,.08,M.metal,0,.18,0,chapter2.pod,24);cylinder(.69,.69,.08,M.metal,0,2.08,0,chapter2.pod,24);cylinder(.15,.15,1.1,M.yellow,0,1.15,0,chapter2.pod,16);sphere(.26,mat(0x8b4c22,.25,.2,0xf08a26,2.2),0,1.24,0,chapter2.pod,16);
  for(let i=0;i<8;i++){const a=i*Math.PI/4;box(.045,.6,.045,M.trim,Math.cos(a)*.73,1.1,Math.sin(a)*.73,chapter2.pod);}
  const podLight=new THREE.PointLight(0xe5a64a,2.3,6,2);podLight.position.set(0,1.6,-42.2);scene.add(podLight);dynamicLights.push({light:podLight,base:2.3,speed:1.7,phase:.8});
- chapter2.power=new THREE.Group();chapter2.power.position.set(-2.35,.95,-39.2);scene.add(chapter2.power);box(.65,.9,.16,M.black,0,0,0,chapter2.power);box(.48,.58,.05,M.metal,0,.02,-.1,chapter2.power);box(.28,.22,.07,M.yellow,0,.05,-.14,chapter2.power);box(.08,.38,.08,M.red,-.14,.04,-.17,chapter2.power);for(let i=0;i<3;i++)box(.1,.04,.025,i===0?M.red:M.green,.15,.25-i*.15,-.14,chapter2.power);const fuseGlow=new THREE.PointLight(0xe0ad4e,.85,2);fuseGlow.position.set(0,.25,-.2);chapter2.power.add(fuseGlow);
- chapter2.console=new THREE.Group();chapter2.console.position.set(2.25,.9,-43.8);scene.add(chapter2.console);box(1.05,1.45,.55,M.black,0,0,0,chapter2.console);box(.78,.58,.04,M.glass,0,.42,-.3,chapter2.console);box(.55,.035,.025,M.cyan,0,.55,-.33,chapter2.console);box(.43,.025,.025,M.trim,0,.42,-.33,chapter2.console);for(let i=0;i<4;i++)box(.11,.08,.04,[M.red,M.yellow,M.green,M.cyan][i],-.22+i*.15,-.18,-.32,chapter2.console);
- chapter2.log=new THREE.Group();chapter2.log.position.set(-2.15,.92,-46.5);scene.add(chapter2.log);box(.55,.045,.7,M.white,0,0,0,chapter2.log);for(let i=0;i<5;i++)box(.35,.012,.025,M.wall,0,.03,-.24+i*.1,chapter2.log);box(.13,.025,.06,M.red,.15,.04,.26,chapter2.log);
+ chapter2.power=new THREE.Group();chapter2.power.position.set(-2.35,.95,-39.2);chapter2.power.rotation.y=Math.PI;scene.add(chapter2.power);addSolid(-2.35,-39.2,.82,.52,'auxiliary power unit');box(.65,.9,.16,M.black,0,0,0,chapter2.power);box(.48,.58,.05,M.metal,0,.02,-.1,chapter2.power);box(.28,.22,.07,M.yellow,0,.05,-.14,chapter2.power);box(.08,.38,.08,M.red,-.14,.04,-.17,chapter2.power);for(let i=0;i<3;i++)box(.1,.04,.025,i===0?M.red:M.green,.15,.25-i*.15,-.14,chapter2.power);const fuseGlow=new THREE.PointLight(0xe0ad4e,.85,2);fuseGlow.position.set(0,.25,-.2);chapter2.power.add(fuseGlow);
+ chapter2.console=new THREE.Group();chapter2.console.position.set(2.25,.9,-43.8);chapter2.console.rotation.y=Math.PI;scene.add(chapter2.console);addSolid(2.25,-43.8,1.22,.78,'observation terminal');box(1.05,1.45,.55,M.black,0,0,0,chapter2.console);box(.78,.58,.04,M.glass,0,.42,-.3,chapter2.console);box(.55,.035,.025,M.cyan,0,.55,-.33,chapter2.console);box(.43,.025,.025,M.trim,0,.42,-.33,chapter2.console);for(let i=0;i<4;i++)box(.11,.08,.04,[M.red,M.yellow,M.green,M.cyan][i],-.22+i*.15,-.18,-.32,chapter2.console);
+ chapter2.log=new THREE.Group();chapter2.log.position.set(-2.15,.92,-46.5);chapter2.log.rotation.y=Math.PI;scene.add(chapter2.log);addSolid(-2.15,-46.5,.82,.82,'transfer log table');box(.55,.045,.7,M.white,0,0,0,chapter2.log);for(let i=0;i<5;i++)box(.35,.012,.025,M.wall,0,.03,-.24+i*.1,chapter2.log);box(.13,.025,.06,M.red,.15,.04,.26,chapter2.log);
  chapter2.exit=new THREE.Group();chapter2.exit.position.set(0,0,-50.25);scene.add(chapter2.exit);box(2.6,3.05,.18,M.black,0,1.5,0,chapter2.exit);box(2.15,2.6,.08,M.metal,0,1.38,-.12,chapter2.exit);for(const x of [-.92,.92])box(.09,2.55,.09,M.yellow,x,1.38,-.18,chapter2.exit);box(.42,.55,.08,M.red,1.45,1.4,-.15,chapter2.exit);box(.3,.16,.04,M.black,1.45,1.4,-.21,chapter2.exit);chapter2.exitPanel=chapter2.exit.children[1];makeLitSign('QUARANTINE / SEALED',0,2.85,-50.05,1.8,.28);
  const exitGlow=new THREE.PointLight(0xff3d2e,1.8,5,2);exitGlow.position.set(0,2.8,-50.1);scene.add(exitGlow);dynamicLights.push({light:exitGlow,base:1.8,speed:3.8,phase:1.2});const fill=new THREE.PointLight(0xc4d5dc,1.15,11,2);fill.position.set(0,3.3,-42.5);scene.add(fill);const amber=new THREE.PointLight(0xe0a94a,1.1,7,2);amber.position.set(-2.5,2.8,-46);scene.add(amber);dynamicLights.push({light:amber,base:1.1,speed:2.1,phase:.4});
 }
@@ -736,9 +738,25 @@ function update(dt){
    player.userData.body.position.y+=(0-player.userData.body.position.y)*(1-Math.exp(-dt*8));
  }
  const lookDir=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
- const desired=new THREE.Vector3(player.position.x-lookDir.x*4.8,player.position.y+2.7+pitch*1.7,player.position.z-lookDir.z*4.8);
- camera.position.lerp(desired,1-Math.exp(-dt*5));
- const target=new THREE.Vector3(player.position.x+lookDir.x*2,player.position.y+1.1+pitch*1.5,player.position.z+lookDir.z*2);
+ const target=new THREE.Vector3(player.position.x+lookDir.x*1.25,player.position.y+1.1+pitch*1.05,player.position.z+lookDir.z*1.25);
+ const desired=new THREE.Vector3(player.position.x-lookDir.x*3.35,player.position.y+2.25+pitch*1.25,player.position.z-lookDir.z*3.35);
+ // Keep the camera inside the facility and shorten its boom so turning cannot send it through the corridor walls.
+ desired.x=THREE.MathUtils.clamp(desired.x,-3.05,3.05);
+ desired.z=chapter===2?THREE.MathUtils.clamp(desired.z,-50.45,-33.1):THREE.MathUtils.clamp(desired.z,-31.4,1.5);
+ // Camera obstruction test: slide the view forward when a wall, pod, or prop sits between the player and camera.
+ const camRay=new THREE.Raycaster();
+ const camVector=desired.clone().sub(target);
+ const camDistance=camVector.length();
+ camRay.set(target,camVector.clone().normalize());
+ const hits=camRay.intersectObjects(scene.children,true);
+ const blocker=hits.find(hit=>{
+  let node=hit.object;
+  while(node){if(node===player)return false;node=node.parent;}
+  return hit.distance>0.35;
+ });
+ const safeDesired=desired.clone();
+ if(blocker&&blocker.distance<camDistance)safeDesired.copy(target).add(camVector.normalize().multiplyScalar(Math.max(1.05,blocker.distance-.28)));
+ camera.position.lerp(safeDesired,1-Math.exp(-dt*9));
  camera.lookAt(target);
  flashlight.visible=flashOn;flashlight.intensity=flashOn?28:0;if(player.userData.beam)player.userData.beam.visible=flashOn;
  for(const item of dynamicLights){const wave=.58+.42*Math.max(0,Math.sin(clock.elapsedTime*item.speed+item.phase));item.light.intensity=item.base*wave;}
