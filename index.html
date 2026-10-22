@@ -302,7 +302,7 @@ function makeChapterThree(){
   addSolid(x,-63.1,4.2,.24,'side room back wall');addSolid(x,-57.9,4.2,.24,'side room front wall');
  }
  const wallClueA=makeLitSign('02:17 / LOCKDOWN FROM INSIDE',-7.18,2.25,-60.5,2.55,.32);wallClueA.rotation.y=Math.PI/2;
- const wallClueB=makeLitSign('S-07 / DO NOT SEND BELOW',7.18,2.2,-60.5,2.25,.32);wallClueB.rotation.y=-Math.PI/2;
+ const wallClueB=makeLitSign('S-07 / DO NOT SEND BELOW',6.92,2.2,-60.5,2.25,.32);wallClueB.rotation.y=-Math.PI/2;
  makeLitSign('DIAGNOSTICS / OPTIONAL',-5.25,2.35,-58.06,2.5,.34);
  makeLitSign('STAFF LOCKER / B-07',5.25,2.35,-58.06,2.2,.34);
  // Optional branch dressing: diagnostics bench, sample drawers and a flickering analyzer.
@@ -314,13 +314,13 @@ function makeChapterThree(){
  addSolid(-5.85,-62.15,1.8,.72,'diagnostics bench');addSolid(-4.55,-62.25,.7,.35,'diagnostics screen');
  // Staff locker branch: numbered lockers, a maintenance cart and a dropped access badge.
  for(let i=0;i<4;i++){const x=4.05+i*.78;box(.62,1.85,.22,M.wallDark,x,1.0,-62.55);box(.5,1.62,.05,M.metal,x,1.02,-62.39);box(.04,.12,.025,M.yellow,x+.16,1.56,-62.35);box(.025,.2,.025,M.black,x-.16,1.05,-62.35);}
- box(1.0,.12,.55,M.black,5.95,.55,-59.35);box(.82,.06,.4,M.metal,5.95,.64,-59.35);
- for(const x of [5.55,6.35]){cylinder(.12,.12,.06,M.black,x,.18,-59.55,scene,10);cylinder(.12,.12,.06,M.black,x,.18,-59.15,scene,10);}
+ box(1.0,.12,.55,M.black,5.95,.55,-60.95);box(.82,.06,.4,M.metal,5.95,.64,-60.95);
+ for(const x of [5.55,6.35]){cylinder(.12,.12,.06,M.black,x,.18,-61.15,scene,10);cylinder(.12,.12,.06,M.black,x,.18,-60.75,scene,10);}
  chapter3.evidence=new THREE.Group();chapter3.evidence.position.set(5.05,.12,-62.05);scene.add(chapter3.evidence);
  box(.34,.035,.24,M.black,0,0,0,chapter3.evidence);box(.23,.018,.14,M.yellow,0,.025,-.01,chapter3.evidence);box(.07,.02,.05,M.cyan,.1,.027,.045,chapter3.evidence);
  for(let i=0;i<3;i++)box(.055,.012,.018,M.white,-.07+i*.07,.028,-.045,chapter3.evidence);
  box(.22,.025,.14,M.yellow,4.45,.08,-60.25);box(.14,.015,.1,M.white,4.45,.1,-60.25);
- addSolid(5.95,-59.35,1.15,.7,'maintenance cart');
+ addSolid(5.95,-60.95,1.15,.7,'maintenance cart');
  box(7.25,4.2,.24,M.wallDark,0,1.95,-70.15);
  box(7.2,.18,19,M.black,0,4.05,-60.5);
  for(const x of [-3.25,3.25]){
@@ -892,7 +892,7 @@ function update(dt){
    const speed=runHeld?4.8:2.65;
    const fx=-Math.sin(yaw),fz=-Math.cos(yaw),rx=Math.cos(yaw),rz=-Math.sin(yaw);
    const oldX=player.position.x,oldZ=player.position.z;
-   const xLimit=chapter===3?6.65:2.85;
+   const xLimit=chapter===3?6.75:2.85;
    let nx=Math.max(-xLimit,Math.min(xLimit,oldX+(fx*forward+rx*side)*speed*dt));
    // Test X and Z independently against the last safe position. This lets the player slide around furniture corners.
    if(collidesAt(nx,oldZ))nx=oldX;
