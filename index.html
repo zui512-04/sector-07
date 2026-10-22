@@ -84,6 +84,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080907;col
  <div class="caseSection">已收集線索 / EVIDENCE LOG</div>
  <div class="caseItem"><div class="caseIcon">▤</div><div><b>研究紀錄 02:17</b><p id="logNote">尚未讀取。研究桌位於走廊右側。</p></div><div class="caseState" id="stateNote">未讀取</div></div>
  <div class="caseItem"><div class="caseIcon">⌘</div><div><b>控制終端記錄</b><p id="logTerminal">尚未調查。走廊側邊的控制面板可能留有系統紀錄。</p></div><div class="caseState" id="stateTerminal">未調查</div></div>
+ <div class="caseItem"><div class="caseIcon">▰</div><div><b>現場錄音裝置</b><p id="logRecorder">尚未回收。推車上可能留有事故當晚的錄音。</p></div><div class="caseState" id="stateRecorder">未回收</div></div>
  <p class="warning">提示：控制終端是額外線索，不影響完成本章。調查物件時，靠近後按下「互動」。</p>
 </div></div>
 <div id="toast"></div>
@@ -106,7 +107,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080907;col
  <button class="primary" id="start">進入設施　/　開始探索　↗</button>
  </div></div>
 <div id="caughtScreen"><div class="caughtCard"><div class="kicker">CONTAINMENT BREACH / 07</div><h2>你被異常體捕獲</h2><p>你在封鎖區內暴露了位置。重新開始，留意周圍的警戒訊號，必要時保持距離並快速移動。</p><button class="primary" id="retry">重新嘗試　/　RETRY</button></div></div>
-<div id="endScreen"><div class="endCard"><div class="kicker">FACILITY 07 / LOG CLOSED</div><h2>成功離開禁區</h2><p>你取得門禁卡、讀取研究紀錄，並成功解除出口封鎖。</p><p>第一章完成。第七號禁區的真相，仍藏在更深處。</p><button class="primary" id="again">重新探索</button></div></div>
+<div id="endScreen"><div class="endCard"><div class="kicker">FACILITY 07 / LOG CLOSED</div><h2>成功離開禁區</h2><p>你取得門禁卡、讀取研究紀錄，並成功解除出口封鎖。</p><p id="endingSummary">第一章完成。第七號禁區的真相，仍藏在更深處。</p><button class="primary" id="again">重新探索</button></div></div>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script>
 
@@ -118,7 +119,7 @@ let enemy=null,enemyState="patrol",enemyDir=1,enemyCaught=false,threatCooldown=0
 const clock=new THREE.Clock();
 const colliders=[];
 const dynamicLights=[];
-const world={card:null,note:null,door:null,doorPanel:null,exitSign:null,terminal:null};
+const world={card:null,note:null,door:null,doorPanel:null,exitSign:null,terminal:null,recorder:null};
 const enemyMaterials={body:null,eye:null};
 let readTerminal=false,readRecorder=false;
 const mat=(color,roughness=.8,metalness=.1,emissive=0,emissiveIntensity=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness,emissive,emissiveIntensity});
@@ -382,6 +383,13 @@ function makeRoom(){
  const beam=new THREE.Mesh(new THREE.ConeGeometry(1.42,5.2,24,1,true),beamMat);
  beam.rotation.x=Math.PI/2;beam.position.set(0,1.48,-2.6);player.add(beam);player.userData.beam=beam;
  const smallGlow=new THREE.PointLight(0x7c9cac,.8,3);smallGlow.position.set(0,1.4,0);player.add(smallGlow);
+ // Optional incident recorder placed on the first service cart.
+ world.recorder=new THREE.Group();scene.add(world.recorder);world.recorder.position.set(2.25,1.08,-7);
+ box(.28,.055,.18,M.black,0,0,0,world.recorder);
+ box(.18,.018,.08,M.yellow,0,.038,-.015,world.recorder);
+ box(.045,.012,.045,M.red,.09,.04,.035,world.recorder);
+ cylinder(.025,.025,.018,M.metal,-.085,.04,.02,world.recorder,10);
+ const recGlow=new THREE.PointLight(0xd6a64c,.65,1.4);recGlow.position.set(0,.15,0);world.recorder.add(recGlow);
  // Keycard on a waist-high cart
  addSolid(-1.7,-15,1.62,1.02,'keycard cart');
  box(1.25,.7,.65,M.wallDark,-1.7,.35,-15);
@@ -442,6 +450,7 @@ function findNearby(){
  if(!hasCard&&world.card&&distanceTo(world.card)<2.25)nearby='card';
  else if(!readNote&&world.note&&distanceTo(world.note)<2.5)nearby='note';
  else if(!readTerminal&&world.terminal&&distanceTo(world.terminal)<2.65)nearby='terminal';
+ else if(!readRecorder&&world.recorder&&distanceTo(world.recorder)<2.35)nearby='recorder';
  else if(world.door&&distanceTo(world.door)<3.2)nearby='door';
  $('interact').classList.toggle('active',!!nearby);
  $('interact').querySelector('span:last-child').textContent=nearby?'使用':'互動';
@@ -453,7 +462,9 @@ function renderCaseFile(){
  $('logNote').textContent=readNote?'02:17 — 封鎖程序由設施內部啟動。紀錄末尾提到「七號樣本已轉移」。':'尚未讀取。研究桌位於走廊右側。';
  $('stateTerminal').textContent=readTerminal?'已調查':'未調查';
  $('logTerminal').textContent=readTerminal?'系統紀錄：封鎖指令來自隔離區內部；中央監控訊號在 02:19 中斷。':'尚未調查。走廊側邊的控制面板可能留有系統紀錄。';
- $('caseCount').textContent=((hasCard?1:0)+(readNote?1:0)+(readTerminal?1:0))+'/3';
+ $('stateRecorder').textContent=readRecorder?'已回收':'未回收';
+ $('logRecorder').textContent=readRecorder?'錄音 02:18：「門不是從外面鎖上的……它要我們把七號樣本送到觀察區。」錄音在警報聲中中斷。':'尚未回收。第一台推車上有一個小型裝置。';
+ $('caseCount').textContent=((hasCard?1:0)+(readNote?1:0)+(readTerminal?1:0)+(readRecorder?1:0))+'/4';
 }
 function interact(){
  findNearby();
@@ -471,18 +482,24 @@ function interact(){
    readTerminal=true;renderCaseFile();
    toast('終端紀錄已保存：隔離區內部曾發出封鎖指令。');return;
  }
+ if(nearby==='recorder'){
+   readRecorder=true;world.recorder.visible=false;renderCaseFile();
+   toast('回收現場錄音：02:18，錄音提到七號樣本與觀察區。');return;
+ }
  if(nearby==='door'){
    if(!hasCard){toast('門禁拒絕：需要有效門禁卡');return}
    if(!readNote){toast('建議先讀取研究桌上的紀錄');return}
    doorOpen=true;if(world.door&&world.door.children[0])world.door.children[0].visible=false;if(world.doorPanel)world.doorPanel.visible=false;if(world.exitSign)world.exitSign.visible=false;$('sys').textContent='EXIT UNLOCKED';
+   const evidence=(hasCard?1:0)+(readNote?1:0)+(readTerminal?1:0)+(readRecorder?1:0);
+   $('endingSummary').textContent=evidence===4?'完整回收 4/4 項紀錄。錄音與終端資料指向同一件事：七號樣本在封鎖前已被送往觀察區。第二章的線索，從這裡開始。':'本章已完成，已整理 '+evidence+'/4 項紀錄。若想拼出事故全貌，可以重新探索並回收遺漏線索。';
    updateMission('出口已開啟','穿過出口，完成本次探索。');toast('門鎖解除。出口已開啟。');
    setTimeout(()=>{$('endScreen').style.display='flex'},1200);return;
  }
  toast('附近沒有可互動的物件');
 }
 function resetGame(){
- started=true;hasCard=false;readNote=false;readTerminal=false;doorOpen=false;yaw=0;pitch=.12;joyX=0;joyY=0;enemyState='patrol';enemyDir=1;enemyCaught=false;threatCooldown=0;if(enemy){enemy.position.set(20,0,20);enemy.visible=false;enemy.rotation.y=0;} $('caughtScreen').style.display='none';$('dangerVignette').style.opacity='0';$('threat').classList.remove('alert','on');$('threat').textContent='THREAT LEVEL / LOW';
- player.position.set(0,0,7);player.rotation.y=0;world.card.visible=true;world.note.visible=true;world.doorPanel.visible=true;renderCaseFile();
+ started=true;hasCard=false;readNote=false;readTerminal=false;readRecorder=false;doorOpen=false;yaw=0;pitch=.12;joyX=0;joyY=0;enemyState='patrol';enemyDir=1;enemyCaught=false;threatCooldown=0;if(enemy){enemy.position.set(20,0,20);enemy.visible=false;enemy.rotation.y=0;} $('caughtScreen').style.display='none';$('dangerVignette').style.opacity='0';$('threat').classList.remove('alert','on');$('threat').textContent='THREAT LEVEL / LOW';
+ player.position.set(0,0,7);player.rotation.y=0;world.card.visible=true;world.note.visible=true;if(world.recorder)world.recorder.visible=true;if(world.door&&world.door.children[0])world.door.children[0].visible=true;world.doorPanel.visible=true;renderCaseFile();
  $('sys').textContent='CONTAINMENT ACTIVE';if(world.exitSign)world.exitSign.visible=true;updateMission('尋找門禁卡','前往走廊深處，尋找門禁卡並打開出口。');
  $('endScreen').style.display='none';toast('任務重新開始');
 }
