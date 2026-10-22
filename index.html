@@ -298,8 +298,8 @@ function makeChapterThree(){
  }
  const wallClueA=makeLitSign('02:17 / LOCKDOWN FROM INSIDE',-3.48,2.25,-56.8,2.55,.32);wallClueA.rotation.y=Math.PI/2;
  const wallClueB=makeLitSign('S-07 / DO NOT SEND BELOW',3.48,2.2,-64.2,2.25,.32);wallClueB.rotation.y=-Math.PI/2;
- makeLitSign('DIAGNOSTICS / OPTIONAL',-5.25,2.35,-60.2,2.5,.34);
- makeLitSign('STAFF LOCKER / B-07',5.25,2.35,-60.2,2.2,.34);
+ makeLitSign('DIAGNOSTICS / OPTIONAL',-5.25,2.35,-58.06,2.5,.34);
+ makeLitSign('STAFF LOCKER / B-07',5.25,2.35,-58.06,2.2,.34);
  box(7.25,4.2,.24,M.wallDark,0,1.95,-70.15);
  box(7.2,.18,19,M.black,0,4.05,-60.5);
  for(const x of [-3.25,3.25]){
@@ -637,8 +637,8 @@ function findNearby(){
  else if(chapter===3&&!chapter3Console&&chapter3.console&&distanceTo(chapter3.console)<2.7)nearby='maintenanceConsole';
  else if(chapter===3&&!chapter3Log&&chapter3.log&&distanceTo(chapter3.log)<2.6)nearby='maintenanceLog';
  else if(chapter===3&&chapter3.exit&&distanceTo(chapter3.exit)<3.1)nearby='serviceLift';
- else if(chapter===3&&!discoveredWallClues.has('diag')&&Math.hypot(player.position.x+5.25,player.position.z+60.5)<2.2)nearby='wallDiagnostic';
- else if(chapter===3&&!discoveredWallClues.has('locker')&&Math.hypot(player.position.x-5.25,player.position.z+60.5)<2.2)nearby='wallLocker';
+ else if(chapter===3&&!discoveredWallClues.has('diag')&&Math.hypot(player.position.x+5.25,player.position.z+58.1)<3.1)nearby='wallDiagnostic';
+ else if(chapter===3&&!discoveredWallClues.has('locker')&&Math.hypot(player.position.x-5.25,player.position.z+58.1)<3.1)nearby='wallLocker';
  else if(chapter===1&&world.door&&distanceTo(world.door)<3.2)nearby='door';
  $('interact').classList.toggle('active',!!nearby);
  $('interact').querySelector('span:last-child').textContent=nearby?(nearby.startsWith('wall')?'查看':'使用'):'互動';
@@ -686,7 +686,7 @@ function interact(){
  if(nearby==='maintenancePower'){
   chapter3Power=true;chapter3.power.visible=false;$('sys').textContent='MAINTENANCE POWER ROUTED';
   updateMission('讀取維修終端','電力已重新導通。前往通道右側的維修終端，確認升降梯故障原因。');
-  toast('維修電源已接通。遠端設備開始恢復供電。');return;
+  showStory(['配電箱的指示燈全亮了，但走廊盡頭的升降梯仍然沒有反應。','我摸了摸開關旁邊的灰塵，只有最近被扳動的位置是乾淨的。','這裡有人活動過，而且他知道怎麼讓監控紀錄看起來像是設備故障。'],'INTERNAL NOTE / POWER ROUTED');return;
  }
  if(nearby==='maintenanceConsole'){
   if(!chapter3Power){toast('終端無回應：請先接通維修電源');return}
