@@ -102,7 +102,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080907;col
  <div class="line"></div>
  <p>你在警報聲中醒來。研究設施已進入封鎖狀態，備用照明即將耗盡，出口需要一張有效門禁卡。</p>
  <p>探索封鎖區、回收遺留紀錄，並在設施完全斷電前離開。</p>
- <p class="warning">建議戴上耳機。首次載入 3D 場景可能需要數秒。</p>
+ <p class="warning">操作提示：左側搖桿移動，拖曳右側空白區轉動視角；角色會朝移動方向自然轉身。首次載入 3D 場景可能需要數秒。</p>
  <button class="primary" id="start">進入設施　/　開始探索　↗</button>
  </div></div>
 <div id="caughtScreen"><div class="caughtCard"><div class="kicker">CONTAINMENT BREACH / 07</div><h2>你被異常體捕獲</h2><p>你在封鎖區內暴露了位置。重新開始，留意周圍的警戒訊號，必要時保持距離並快速移動。</p><button class="primary" id="retry">重新嘗試　/　RETRY</button></div></div>
@@ -306,14 +306,25 @@ function makeRoom(){
  sphere(.22,suitLight,0,1.61,0,body,12);
  sphere(.17,visor,0,1.64,-.07,body,12);
  box(.24,.035,.018,M.cyan,0,1.66,-.232,body);
- for(const x of [-.34,.34]){
-   sphere(.13,armor,x,1.35,0,body,10);
-   cylinder(.085,.1,.65,suit,x*.44,.42,0,body,8);
-   cylinder(.075,.075,.62,suit,x*.48,.98,0,body,8);
-   box(.15,.16,.12,armor,x*.48,.63,-.025,body);
-   box(.13,.08,.2,rubber,x*.48,.12,-.025,body);
-   box(.13,.23,.08,armor,x*.48,1.0,-.11,body);
- }
+ // Pivoted limbs: explicit joints allow proper walk/run animation rather than rotating unrelated mesh parts
+ const limbs={};
+ for(const side of [-1,1]){
+   const arm=new THREE.Group();arm.position.set(side*.34,1.36,0);body.add(arm);
+   sphere(.13,armor,0,0,0,arm,10);
+   cylinder(.085,.1,.34,suit,side*.025,-.22,0,arm,8);
+   sphere(.09,rubber,side*.025,-.43,-.015,arm,8);
+   cylinder(.075,.075,.28,suit,side*.025,-.56,-.005,arm,8);
+   box(.13,.12,.15,armor,side*.025,-.69,-.035,arm);
+   box(.13,.22,.08,armor,side*.025,-.22,-.105,arm);
+   limbs[side<0?'armL':'armR']=arm;
+   const leg=new THREE.Group();leg.position.set(side*.16,.79,0);body.add(leg);
+   cylinder(.105,.12,.34,suit,0,-.19,0,leg,8);
+   box(.15,.17,.12,armor,0,-.2,-.025,leg);
+   cylinder(.085,.1,.32,suit,0,-.51,0,leg,8);
+   box(.14,.08,.2,rubber,0,-.7,-.035,leg);
+   limbs[side<0?'legL':'legR']=leg;
+ } 
+ player.userData.limbs=limbs;
  // Waist utility belt, chest module and a more readable field pack
  cylinder(.3,.3,.1,rubber,0,.83,0,body,12);
  box(.16,.12,.045,M.yellow,.12,.84,-.2,body);
@@ -471,7 +482,13 @@ function updateEnemy(dt){
  const speed=enemyState==='chase'?3.25:enemyState==='search'?2.0:1.05;
  if(td>.08){enemy.position.x+=tx/td*Math.min(speed*dt,td);enemy.position.z+=tz/td*Math.min(speed*dt,td);enemy.rotation.y=Math.atan2(tx,tz);}
  enemy.position.x=Math.max(-2.7,Math.min(2.7,enemy.position.x));enemy.position.z=Math.max(-29,Math.min(7,enemy.position.z));
- enemy.position.y=Math.sin(clock.elapsedTime*5)*.035;
+ // The anomaly has a restrained, uneven gait and a subtle head/torso sway.
+ enemy.position.y=Math.abs(Math.sin(clock.elapsedTime*(enemyState==='chase'?10:5)))*.055;
+ enemy.rotation.z=Math.sin(clock.elapsedTime*2.2)*.025;
+ for(let i=0;i<enemy.children.length;i++){
+   const part=enemy.children[i];
+   if(part.isMesh && i>=8)part.rotation.x=Math.sin(clock.elapsedTime*6+i*.7)*(enemyState==='chase'?.13:.045);
+ }
  const danger=Math.max(0,1-dist/12);
  $('dangerVignette').style.opacity=String(enemyState==='chase'?.22+danger*.36:enemyState==='search'?.08:0);
  if(enemyState==='chase'){$('threat').textContent='WARNING / ANOMALY PURSUIT';$('threat').classList.add('on','alert');$('sys').textContent='CONTAINMENT ALERT';}
@@ -496,12 +513,26 @@ function update(dt){
    player.position.z=Math.max(-32.5,Math.min(10,nz));
    // stop at the closed exit
    if(player.position.z<-29.9&&!doorOpen)player.position.z=-29.9;
-   player.rotation.y=yaw+Math.atan2(side,Math.max(.01,forward))*.25;
-   const t=clock.elapsedTime*9*(runHeld?1.4:1);
-   player.userData.body.children[4].rotation.x=Math.sin(t)*.48;
-   player.userData.body.children[5].rotation.x=-Math.sin(t)*.48;
+   // Move relative to camera, but rotate the character toward the actual travel direction.
+   // This avoids the old camera-yaw/side-input mismatch that made turning feel slippery.
+   const moveX=fx*forward+rx*side,moveZ=fz*forward+rz*side;
+   const targetYaw=Math.atan2(moveX,moveZ);
+   const angleDelta=Math.atan2(Math.sin(targetYaw-player.rotation.y),Math.cos(targetYaw-player.rotation.y));
+   player.rotation.y+=angleDelta*(1-Math.exp(-dt*(runHeld?13:9)));
+   const t=clock.elapsedTime*(runHeld?13:8.5);
+   const stride=Math.min(1,mag)*(runHeld?1.0:.68);
+   const limbs=player.userData.limbs;
+   if(limbs){
+     limbs.legL.rotation.x=Math.sin(t)*.62*stride;
+     limbs.legR.rotation.x=-Math.sin(t)*.62*stride;
+     limbs.armL.rotation.x=-Math.sin(t)*.42*stride-.08;
+     limbs.armR.rotation.x=Math.sin(t)*.42*stride-.08;
+   }
+   player.userData.body.position.y=Math.abs(Math.sin(t))*.035*stride;
  }else{
-   player.userData.body.children[4].rotation.x=0;player.userData.body.children[5].rotation.x=0;
+   const limbs=player.userData.limbs;
+   if(limbs){limbs.legL.rotation.x*=Math.exp(-dt*12);limbs.legR.rotation.x*=Math.exp(-dt*12);limbs.armL.rotation.x+=( -.08-limbs.armL.rotation.x)*(1-Math.exp(-dt*8));limbs.armR.rotation.x+=( -.08-limbs.armR.rotation.x)*(1-Math.exp(-dt*8));}
+   player.userData.body.position.y+=(0-player.userData.body.position.y)*(1-Math.exp(-dt*8));
  }
  const lookDir=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
  const desired=new THREE.Vector3(player.position.x-lookDir.x*4.8,player.position.y+2.7+pitch*1.7,player.position.z-lookDir.z*4.8);
