@@ -210,6 +210,8 @@ const chapter2={power:null,console:null,log:null,exit:null,exitPanel:null,pod:nu
 let chapter3Power=false,chapter3Console=false,chapter3Log=false;
 const chapter3={power:null,console:null,log:null,exit:null,exitPanel:null,evidence:null};
  let chapter3EvidenceFound=false;
+ let chapter4Power=false,chapter4Console=false,chapter4Log=false,chapter4EvidenceFound=false;
+ const chapter4={group:null,power:null,console:null,log:null,exit:null,exitPanel:null,evidence:null};
 const mat=(color,roughness=.8,metalness=.1,emissive=0,emissiveIntensity=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness,emissive,emissiveIntensity});
 const M={
  floor:mat(0x26323b,.92),wall:mat(0x3c4a53,.85),wallDark:mat(0x17232d,.9),metal:mat(0x657781,.45,.7),
@@ -361,6 +363,21 @@ function makeChapterThree(){
  const serviceGlow=new THREE.PointLight(0xff3d2e,1.5,5,2);serviceGlow.position.set(0,2.8,-69.1);scene.add(serviceGlow);
  dynamicLights.push({light:serviceGlow,base:1.5,speed:3.2,phase:.5});
  const workLight=new THREE.PointLight(0xc4d5dc,1.1,10,2);workLight.position.set(0,3.1,-61);scene.add(workLight);
+}
+function makeChapterFour(){
+ chapter4.group=new THREE.Group();scene.add(chapter4.group);chapter4.group.visible=false;const g=chapter4.group;
+ box(7.2,.22,25,M.floor,0,-.16,-84.5,g);box(4.15,.22,6.4,M.floor,-5.25,-.16,-84.4,g);box(4.15,.22,6.4,M.floor,5.25,-.16,-84.4,g);
+ for(const x of [-3.62,3.62]){box(.22,4.2,6.2,M.wallDark,x,1.95,-76.2,g);box(.22,4.2,6.2,M.wallDark,x,1.95,-92.8,g);addSolid(x,-76.2,.28,6.2,'lower corridor wall');addSolid(x,-92.8,.28,6.2,'lower corridor wall');}
+ for(const x of [-5.25,5.25]){box(4.15,.18,6.4,M.black,x,4.05,-84.4,g);box(.2,4.2,6.4,M.wallDark,x<0?-7.32:7.32,1.95,-84.4,g);box(4.2,4.2,.2,M.wallDark,x,1.95,-87.6,g);box(4.2,4.2,.2,M.wallDark,x,1.95,-81.2,g);addSolid(x<0?-7.32:7.32,-84.4,.24,6.4,'containment side wall');addSolid(x,-87.6,4.2,.24,'containment room back wall');addSolid(x,-81.2,4.2,.24,'containment room front wall');}
+ box(7.25,4.2,.24,M.wallDark,0,1.95,-97.05,g);box(7.2,.18,25,M.black,0,4.05,-84.5,g);
+ for(let z=-74;z>=-95;z-=3){box(5.8,.018,.025,M.trim,0,-.025,z,g);for(let i=0;i<5;i++)box(.18,.015,.34,M.yellow,-2.7+i*.22,-.018,z-.6,g);}
+ for(const x of [-3.2,3.2])for(let z=-75;z>=-94;z-=3){box(.12,.12,.5,M.metal,x,3.65,z,g);box(.08,.08,.4,M.yellow,x,3.52,z,g);}
+ const s1=makeLitSign('LOWER CONTAINMENT / C-LEVEL',0,3.2,-73.15,3.1,.42);g.add(s1);const s2=makeLitSign('BIOHAZARD / NO ENTRY',-5.25,2.45,-81.32,2.5,.34);g.add(s2);const s3=makeLitSign('SPECIMEN ARCHIVE / C-07',5.25,2.45,-81.32,2.5,.34);g.add(s3);
+ chapter4.power=new THREE.Group();chapter4.power.position.set(-2.25,.95,-77.5);chapter4.power.rotation.y=Math.PI;g.add(chapter4.power);box(.72,.98,.18,M.black,0,0,0,chapter4.power);box(.5,.6,.05,M.metal,0,.04,-.12,chapter4.power);box(.27,.22,.06,M.yellow,0,.1,-.16,chapter4.power);box(.08,.4,.06,M.red,-.16,.04,-.17,chapter4.power);for(let i=0;i<3;i++)box(.1,.05,.03,i===0?M.red:M.green,.16,.24-i*.16,-.17,chapter4.power);addSolid(-2.25,-77.5,.9,.62,'lower power relay');
+ chapter4.console=new THREE.Group();chapter4.console.position.set(2.15,.9,-82.8);chapter4.console.rotation.y=Math.PI;g.add(chapter4.console);box(1.05,1.4,.5,M.black,0,0,0,chapter4.console);box(.78,.56,.04,M.glass,0,.4,-.28,chapter4.console);box(.56,.035,.025,M.cyan,0,.52,-.31,chapter4.console);box(.42,.025,.025,M.trim,0,.4,-.31,chapter4.console);for(let i=0;i<4;i++)box(.1,.07,.04,[M.red,M.yellow,M.green,M.cyan][i],-.22+i*.15,-.18,-.3,chapter4.console);addSolid(2.15,-82.8,1.15,.8,'lower sector terminal');
+ chapter4.evidence=new THREE.Group();chapter4.evidence.position.set(-5.15,.13,-84.5);g.add(chapter4.evidence);box(.5,.045,.34,M.black,0,0,0,chapter4.evidence);box(.34,.018,.2,M.yellow,0,.03,-.02,chapter4.evidence);box(.12,.025,.08,M.cyan,.13,.04,.07,chapter4.evidence);box(.72,.12,.45,M.black,-5.9,.55,-85.7,g);box(.62,.06,.32,M.metal,-5.9,.63,-85.7,g);addSolid(-5.9,-85.7,.85,.58,'containment trolley');
+ chapter4.log=new THREE.Group();chapter4.log.position.set(5.25,.92,-85.1);chapter4.log.rotation.y=Math.PI;g.add(chapter4.log);box(.72,.06,.8,M.black,0,0,0,chapter4.log);box(.56,.025,.62,M.white,0,.045,0,chapter4.log);for(let i=0;i<5;i++)box(.38,.012,.025,M.wall,0,.07,-.2+i*.1,chapter4.log);box(.14,.025,.06,M.red,.18,.08,.25,chapter4.log);addSolid(5.25,-85.1,.95,.9,'specimen archive desk');
+ chapter4.exit=new THREE.Group();chapter4.exit.position.set(0,0,-95.7);g.add(chapter4.exit);box(2.7,3.05,.18,M.black,0,1.5,0,chapter4.exit);box(2.2,2.6,.08,M.metal,0,1.38,-.12,chapter4.exit);for(const x of [-.94,.94])box(.09,2.55,.09,M.yellow,x,1.38,-.18,chapter4.exit);box(.42,.55,.08,M.red,1.48,1.4,-.15,chapter4.exit);chapter4.exitPanel=chapter4.exit.children[1];const s4=makeLitSign('DESCENT GATE / SEALED',0,2.85,-95.48,2.1,.3);g.add(s4);const glow=new THREE.PointLight(0xff3d2e,1.2,5,2);glow.position.set(0,2.8,-95.6);g.add(glow);dynamicLights.push({light:glow,base:1.2,speed:2.8,phase:1.4});
 }
 function makeRoom(){
  scene=new THREE.Scene();scene.background=new THREE.Color(0x080e15);scene.fog=new THREE.FogExp2(0x080e15,.032);
@@ -661,6 +678,11 @@ function findNearby(){
  else if(chapter===3&&chapter3.exit&&distanceTo(chapter3.exit)<3.1)nearby='serviceLift';
  else if(chapter===3&&!discoveredWallClues.has('diag')&&Math.hypot(player.position.x+6.1,player.position.z+60.5)<1.9)nearby='wallDiagnostic';
  else if(chapter===3&&!discoveredWallClues.has('locker')&&Math.hypot(player.position.x-6.1,player.position.z+60.5)<1.9)nearby='wallLocker';
+  else if(chapter===4&&!chapter4Power&&chapter4.power&&distanceTo(chapter4.power)<2.7)nearby='lowerPower';
+  else if(chapter===4&&!chapter4Console&&chapter4.console&&distanceTo(chapter4.console)<2.7)nearby='lowerConsole';
+  else if(chapter===4&&!chapter4Log&&chapter4.log&&distanceTo(chapter4.log)<2.6)nearby='lowerLog';
+  else if(chapter===4&&!chapter4EvidenceFound&&chapter4.evidence&&Math.hypot(player.position.x-chapter4.evidence.position.x,player.position.z-chapter4.evidence.position.z)<1.65)nearby='lowerEvidence';
+  else if(chapter===4&&chapter4.exit&&distanceTo(chapter4.exit)<3.1)nearby='descentGate';
  else if(chapter===1&&world.door&&distanceTo(world.door)<3.2)nearby='door';
  $('interact').classList.toggle('active',!!nearby);
  $('interact').querySelector('span:last-child').textContent=nearby?(nearby.startsWith('wall')?'查看':'使用'):'互動';
@@ -738,7 +760,12 @@ function interact(){
   updateMission('服務升降梯已解除','維修層調查完成。下一步將深入設施下層。');
   toast('服務升降梯已解除。第三章調查完成。');setTimeout(()=>$('endScreen').style.display='flex',900);return;
  }
- if(nearby==='card'){
+ if(nearby==='lowerEvidence'){chapter4EvidenceFound=true;chapter4.evidence.visible=false;$('sys').textContent='UNLISTED SPECIMEN TAG';toast('取得未登記的樣本標籤。封存時間比轉移紀錄早了十一分鐘。');updateMission('比對樣本標籤','這份標籤並非必要證據，但它能補足下層收容區的時間線。');return;}
+  if(nearby==='lowerPower'){chapter4Power=true;chapter4.power.visible=false;$('sys').textContent='LOWER CONTAINMENT POWER ON';updateMission('啟動收容終端','收容區照明恢復。前往右側終端讀取 C-07 的封存狀態。');toast('下層電力已恢復。');return;}
+  if(nearby==='lowerConsole'){if(!chapter4Power){toast('終端沒有反應：請先恢復下層電力');return}chapter4Console=true;chapter4.console.visible=false;$('sys').textContent='C-07 CONTAINMENT DATA';updateMission('回收封存紀錄','終端已解鎖。前往右側樣本檔案桌，找出封存紀錄。');showStory(['終端沒有顯示樣本目前的位置，只顯示一項狀態：C-07 已完成封存。','封存時間比全設施警報早了十一分鐘。有人在警報響起之前，就已經知道這裡會出事。'],'INTERNAL NOTE / CONTAINMENT DATA');return;}
+  if(nearby==='lowerLog'){if(!chapter4Console){toast('檔案桌仍處於鎖定狀態：先啟動收容終端');return}chapter4Log=true;chapter4.log.visible=false;$('sys').textContent='C-07 ARCHIVE RECOVERED';updateMission('解除下行閘門','封存紀錄已回收。前往區域盡頭的下行閘門。');showStory(['紀錄裡的操作人員欄位被整段刪除，但每一次修改都使用同一張門禁憑證。','那張憑證的持有人，理應在事故發生前就已離開設施。這不是單純的資料遺失。'],'INTERNAL NOTE / ARCHIVE');return;}
+  if(nearby==='descentGate'){if(!chapter4Power||!chapter4Console||!chapter4Log){toast('下行閘門仍封鎖中：請完成電力、收容終端與封存紀錄');return}if(chapter4.exitPanel)chapter4.exitPanel.visible=false;$('sys').textContent='CHAPTER 04 COMPLETE';$('endingSummary').textContent='第四章完成。你恢復下層電力、解鎖 C-07 收容資料，並回收被刪改的封存紀錄。'+(chapter4EvidenceFound?'\n\n額外證據：未登記樣本標籤證明，封存作業早於全設施警報十一分鐘。有人提前安排了這一切。':'\n\n仍有一項可選證據留在左側收容室，或許能補足時間線。');$('endScreen').querySelector('.kicker').textContent='FACILITY 07 / LOWER CONTAINMENT';$('endScreen').querySelector('h2').textContent='下層收容區調查完成';$('again').textContent='重新探索第一章';updateMission('下行閘門已解除','下層收容區調查完成。閘門後方仍有未登錄的區域。');toast('下行閘門已解除。第四章調查完成。');setTimeout(()=>$('endScreen').style.display='flex',900);return;}
+  if(nearby==='card'){
    hasCard=true;world.card.visible=false;$('sys').textContent='ACCESS CARD ACQUIRED';renderCaseFile();
    updateMission('讀取研究紀錄','門禁卡已取得。前往走廊右側的研究桌，查看留下的紀錄。');
    toast('取得門禁卡：S-07 / ACCESS GRANTED');return;
@@ -781,6 +808,7 @@ function startChapterThree(){
  updateMission('恢復維修層電力','穿過隔離門後進入地下維修層。先找到左側的維修電源箱。');
  showStory(['門在身後沉重地合上，聲音沿著狹窄的維修通道傳了很遠。','這裡的空氣比觀察區更冷，牆上卻留著新鮮的刮痕。有人最近來過，而且不想讓別人知道。','先別急著往前。左右兩側似乎都有維修支線，也許能找到升降梯被鎖定的原因。'],'CHAPTER 03 / MAINTENANCE LEVEL');
 }
+function startChapterFour(){chapter=4;chapter4Power=false;chapter4Console=false;chapter4Log=false;chapter4EvidenceFound=false;started=true;$('endScreen').style.display='none';$('caughtScreen').style.display='none';$('dangerVignette').style.opacity='0';$('threat').classList.remove('alert','on');if(enemy){enemy.visible=false;enemy.position.set(20,0,20)}if(chapter2.backWall)chapter2.backWall.visible=false;if(chapter2.exit)chapter2.exit.visible=false;if(chapter3.exit)chapter3.exit.visible=false;if(chapter4.group)chapter4.group.visible=true;player.position.set(0,0,-72.6);player.rotation.y=0;yaw=0;pitch=.12;joyX=0;joyY=0;runHeld=false;chapter4.power.visible=true;chapter4.console.visible=true;chapter4.log.visible=true;chapter4.exit.visible=true;chapter4.exitPanel.visible=true;chapter4.evidence.visible=true;$('caseTitle').textContent='第四章：下層收容區';$('sys').textContent='LOWER CONTAINMENT / SEALED';$('endScreen').querySelector('.kicker').textContent='FACILITY 07 / LOWER CONTAINMENT';updateMission('恢復下層電力','通過服務升降梯後，你抵達 C 層收容區。先恢復左側電力，再調查 C-07 的封存紀錄。');showStory(['升降梯下降了很久，久到樓層指示燈在抵達前就已經熄滅。','門打開時，裡面沒有警報，只有一排亮著的收容燈。這裡不像剛發生事故的地方，更像有人提前整理好，等著我們來。'],'CHAPTER 04 / LOWER CONTAINMENT');}
 function startChapterTwo(){
  chapter=2;chapter2Power=false;chapter2Console=false;chapter2Log=false;started=true;doorOpen=true;hasCard=true;readNote=true;readTerminal=false;readRecorder=false;
  $('endScreen').style.display='none';$('caughtScreen').style.display='none';$('dangerVignette').style.opacity='0';$('threat').classList.remove('alert','on');if(enemy){enemy.visible=false;enemy.position.set(20,0,20)}
@@ -790,7 +818,7 @@ function startChapterTwo(){
  $('caseTitle').textContent='第二章：觀察區';$('sys').textContent='OBSERVATION ZONE / OFFLINE';updateMission('恢復觀察區電源','入口前方是觀察區。先找到左側維修架上的備用電源。');showStory(['門後是一間比走廊寬闊許多的觀察室，中央的收容艙仍亮著微弱的琥珀光。','玻璃沒有破裂，地面也沒有拖行痕跡。若樣本真的被轉移，這裡不該如此完整。','先恢復電源，再查清楚終端和轉移紀錄。這一次，我不打算只相信系統告訴我的答案。'],'CHAPTER 02 / OBSERVATION CHAMBER');
 }
 function resetGame(){
- chapter=1;chapter2Power=false;chapter2Console=false;chapter2Log=false;chapter3Power=false;chapter3Console=false;chapter3Log=false;
+ chapter=1;chapter2Power=false;chapter2Console=false;chapter2Log=false;chapter3Power=false;chapter3Console=false;chapter3Log=false;chapter4Power=false;chapter4Console=false;chapter4Log=false;chapter4EvidenceFound=false;if(chapter4.group)chapter4.group.visible=false;if(chapter3.exit)chapter3.exit.visible=true;
  started=true;hasCard=false;readNote=false;readTerminal=false;readRecorder=false;doorOpen=false;yaw=0;pitch=.12;joyX=0;joyY=0;enemyState='patrol';enemyDir=1;enemyCaught=false;threatCooldown=0;if(enemy){enemy.position.set(20,0,20);enemy.visible=false;enemy.rotation.y=0;} $('caughtScreen').style.display='none';$('dangerVignette').style.opacity='0';$('threat').classList.remove('alert','on');$('threat').textContent='THREAT LEVEL / LOW';
  player.position.set(0,0,7);player.rotation.y=0;if(chapter2.backWall)chapter2.backWall.visible=true;if(chapter2.exit)chapter2.exit.visible=true;if(chapter3.power)chapter3.power.visible=true;if(chapter3.console)chapter3.console.visible=true;if(chapter3.log)chapter3.log.visible=true;if(chapter3.exit)chapter3.exit.visible=true;if(chapter3.evidence)chapter3.evidence.visible=true;chapter3EvidenceFound=false;world.card.visible=true;world.note.visible=true;if(world.recorder)world.recorder.visible=true;if(chapter2.power)chapter2.power.visible=true;if(chapter2.console)chapter2.console.visible=true;if(chapter2.log)chapter2.log.visible=true;if(chapter2.exitPanel)chapter2.exitPanel.visible=true;$('caseTitle').textContent='探索檔案';$('endScreen').querySelector('.kicker').textContent='FACILITY 07 / LOG CLOSED';$('endScreen').querySelector('h2').textContent='成功離開禁區';$('again').textContent='進入第二章　/　觀察區 ↗';if(world.door&&world.door.children[0])world.door.children[0].visible=true;world.doorPanel.visible=true;renderCaseFile();
  $('sys').textContent='CONTAINMENT ACTIVE';if(world.exitSign)world.exitSign.visible=true;updateMission('尋找門禁卡','前往走廊深處，尋找門禁卡並打開出口。');
@@ -841,7 +869,7 @@ function setupControls(){
  $('caseClose').addEventListener('click',()=>{$('casePanel').style.display='none'});
  $('casePanel').addEventListener('click',e=>{if(e.target===$('casePanel'))$('casePanel').style.display='none'});
  $('start').addEventListener('click',()=>{$('intro').style.display='none';started=true;setFlash(true);toast('設施已封鎖。找到門禁卡。');});
- $('again').addEventListener('click',()=>{if(chapter===1)startChapterTwo();else if(chapter===2)startChapterThree();else resetGame()});
+ $('again').addEventListener('click',()=>{if(chapter===1)startChapterTwo();else if(chapter===2)startChapterThree();else if(chapter===3)startChapterFour();else resetGame()});
  $('retry').addEventListener('click',resetGame);
  window.addEventListener('keydown',e=>{if(e.key==='Shift')runHeld=true;if(e.key==='f')setFlash(!flashOn);if(e.key==='e'||e.key===' ')interact();});
  window.addEventListener('keyup',e=>{if(e.key==='Shift')runHeld=false});
@@ -892,11 +920,11 @@ function update(dt){
    const speed=runHeld?4.8:2.65;
    const fx=-Math.sin(yaw),fz=-Math.cos(yaw),rx=Math.cos(yaw),rz=-Math.sin(yaw);
    const oldX=player.position.x,oldZ=player.position.z;
-   const xLimit=chapter===3?6.75:2.85;
+   const xLimit=(chapter===3||chapter===4)?6.75:2.85;
    let nx=Math.max(-xLimit,Math.min(xLimit,oldX+(fx*forward+rx*side)*speed*dt));
    // Test X and Z independently against the last safe position. This lets the player slide around furniture corners.
    if(collidesAt(nx,oldZ))nx=oldX;
-   let safeZ=Math.max(chapter===3?-70.5:-51.5,Math.min(10,oldZ+(fz*forward+rz*side)*speed*dt));
+   const minZ=chapter===4?-97.2:(chapter===3?-70.5:-51.5);let safeZ=Math.max(minZ,Math.min(10,oldZ+(fz*forward+rz*side)*speed*dt));
    if(collidesAt(nx,safeZ))safeZ=oldZ;
    player.position.x=nx;
    player.position.z=safeZ;
@@ -904,6 +932,7 @@ function update(dt){
    if(chapter===1&&player.position.z<-29.9&&!doorOpen)player.position.z=-29.9;
    if(chapter===2&&player.position.z<-49.1&&!(chapter2Power&&chapter2Console&&chapter2Log))player.position.z=-49.1;
    if(chapter===3&&player.position.z<-68.4&&!(chapter3Power&&chapter3Console&&chapter3Log))player.position.z=-68.4;
+    if(chapter===4&&player.position.z<-94.2&&!(chapter4Power&&chapter4Console&&chapter4Log))player.position.z=-94.2;
    // Move relative to camera, but rotate the character toward the actual travel direction.
    // This avoids the old camera-yaw/side-input mismatch that made turning feel slippery.
    const moveX=fx*forward+rx*side,moveZ=fz*forward+rz*side;
@@ -944,7 +973,7 @@ function animate(){
  if(scene&&player){update(dt);renderer.render(scene,camera)}
 }
 try{
- makeRoom();makeChapterTwo();makeChapterThree();setupControls();renderCaseFile();
+ makeRoom();makeChapterTwo();makeChapterThree();makeChapterFour();setupControls();renderCaseFile();
  function resizeGame(){if(!camera||!renderer)return;const w=window.innerWidth,h=window.innerHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));}
  window.addEventListener('resize',resizeGame,{passive:true});window.addEventListener('orientationchange',()=>setTimeout(resizeGame,120),{passive:true});
  $('sys').textContent='FACILITY OFFLINE';animate();
