@@ -138,6 +138,13 @@ function cylinder(rt,rb,h,material,x,y,z,group=scene,segments=12){
 function sphere(r,material,x,y,z,group=scene,segments=12){
  const o=new THREE.Mesh(new THREE.SphereGeometry(r,segments,10),material);o.position.set(x,y,z);o.castShadow=true;group.add(o);return o;
 }
+// Solid furniture uses simple invisible footprint colliders. The player can slide along edges instead of passing through props.
+function addSolid(x,z,w,d,label='object'){
+ colliders.push({minX:x-w/2,maxX:x+w/2,minZ:z-d/2,maxZ:z+d/2,label});
+}
+function collidesAt(x,z,radius=.34){
+ return colliders.some(c=>x+radius>c.minX&&x-radius<c.maxX&&z+radius>c.minZ&&z-radius<c.maxZ);
+}
 function makeLamp(x,z){
  box(1.7,.08,.42,M.black,x,3.82,z);
  box(1.35,.035,.25,M.cyan,x,3.76,z);
@@ -301,6 +308,7 @@ function makeRoom(){
  // Extra carts and lab equipment break up the long corridor silhouette
  for(const z of [-7,-25]){
    const x=z===-7?2.25:-2.2;
+   addSolid(x,z,.84,.56,z===-7?'service cart':'equipment cart');
    box(.8,.95,.52,M.black,x,.48,z);
    box(.84,.08,.56,M.metal,x,.98,z);
    box(.55,.04,.035,M.cyan,x,1.04,z-.16);
@@ -373,6 +381,7 @@ function makeRoom(){
  beam.rotation.x=Math.PI/2;beam.position.set(0,1.48,-2.6);player.add(beam);player.userData.beam=beam;
  const smallGlow=new THREE.PointLight(0x7c9cac,.8,3);smallGlow.position.set(0,1.4,0);player.add(smallGlow);
  // Keycard on a waist-high cart
+ addSolid(-1.7,-15,1.28,.68,'keycard cart');
  box(1.25,.7,.65,M.wallDark,-1.7,.35,-15);
  box(1.28,.07,.68,M.metal,-1.7,.72,-15);
  world.card=new THREE.Group();scene.add(world.card);world.card.position.set(-1.55,.84,-15);
@@ -380,6 +389,7 @@ function makeRoom(){
  box(.1,.018,.055,M.cyan,-.13,.025,0,world.card);
  const cardGlow=new THREE.PointLight(0x65c6e8,1.8,2);cardGlow.position.set(0,.25,0);world.card.add(cardGlow);
  // Research clipboard and a side desk
+ addSolid(1.8,-22,1.42,.86,'research desk');
  box(1.35,.12,.8,M.black,1.8,.83,-22);
  box(.12,.85,.12,M.metal,1.28,.4,-21.75);box(.12,.85,.12,M.metal,2.32,.4,-21.75);
  world.note=new THREE.Group();scene.add(world.note);world.note.position.set(1.8,.92,-22);
@@ -539,10 +549,14 @@ function update(dt){
    forward/=Math.max(1,mag);side/=Math.max(1,mag);
    const speed=runHeld?4.8:2.65;
    const fx=-Math.sin(yaw),fz=-Math.cos(yaw),rx=Math.cos(yaw),rz=-Math.sin(yaw);
-   const nx=player.position.x+(fx*forward+rx*side)*speed*dt;
-   const nz=player.position.z+(fz*forward+rz*side)*speed*dt;
-   player.position.x=Math.max(-2.85,Math.min(2.85,nx));
-   player.position.z=Math.max(-32.5,Math.min(10,nz));
+   const oldX=player.position.x,oldZ=player.position.z;
+   let nx=Math.max(-2.85,Math.min(2.85,oldX+(fx*forward+rx*side)*speed*dt));
+   let nz=Math.max(-32.5,Math.min(10,oldZ+(fz*forward+rz*side)*speed*dt));
+   // Resolve each axis separately: this prevents clipping through tables and carts while preserving wall-sliding movement.
+   if(collidesAt(nx,oldZ))nx=oldX;
+   if(collidesAt(nx,nz))nz=oldZ;
+   player.position.x=nx;
+   player.position.z=nz;
    // stop at the closed exit
    if(player.position.z<-29.9&&!doorOpen)player.position.z=-29.9;
    // Move relative to camera, but rotate the character toward the actual travel direction.
