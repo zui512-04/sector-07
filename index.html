@@ -291,15 +291,32 @@ function makeChapterThree(){
  // Openings in both walls lead to optional maintenance side rooms.
  box(.22,4.2,8.0,M.wallDark,-3.62,1.95,-55.1);box(.22,4.2,8.6,M.wallDark,-3.62,1.95,-65.7);
  box(.22,4.2,8.0,M.wallDark,3.62,1.95,-55.1);box(.22,4.2,8.6,M.wallDark,3.62,1.95,-65.7);
+ // Solid corridor walls with a deliberate gap at each side-room entrance.
+ for(const x of [-3.62,3.62]){addSolid(x,-55.1,.28,8.0,'corridor wall');addSolid(x,-65.7,.28,8.6,'corridor wall');}
  for(const x of [-5.25,5.25]){
   box(4.15,.22,5.2,M.floor,x,-.16,-60.5);box(4.15,.18,5.2,M.black,x,4.05,-60.5);
   box(.2,4.2,5.2,M.wallDark,x<0?-7.32:7.32,1.95,-60.5);
   box(4.2,4.2,.2,M.wallDark,x,1.95,-63.1);box(4.2,4.2,.2,M.wallDark,x,1.95,-57.9);
+  addSolid(x<0?-7.32:7.32,-60.5,.24,5.2,'side room outer wall');
+  addSolid(x,-63.1,4.2,.24,'side room back wall');addSolid(x,-57.9,4.2,.24,'side room front wall');
  }
  const wallClueA=makeLitSign('02:17 / LOCKDOWN FROM INSIDE',-3.48,2.25,-56.8,2.55,.32);wallClueA.rotation.y=Math.PI/2;
  const wallClueB=makeLitSign('S-07 / DO NOT SEND BELOW',3.48,2.2,-64.2,2.25,.32);wallClueB.rotation.y=-Math.PI/2;
  makeLitSign('DIAGNOSTICS / OPTIONAL',-5.25,2.35,-58.06,2.5,.34);
  makeLitSign('STAFF LOCKER / B-07',5.25,2.35,-58.06,2.2,.34);
+ // Optional branch dressing: diagnostics bench, sample drawers and a flickering analyzer.
+ box(1.7,.16,.62,M.black,-5.85,.86,-62.15);box(1.55,.08,.48,M.metal,-5.85,.98,-62.15);
+ for(const x of [-6.45,-5.85,-5.25]){box(.42,.34,.04,M.wallDark,x,1.2,-61.82);box(.28,.045,.025,M.yellow,x,1.22,-61.79);}
+ box(.58,.42,.08,M.black,-4.55,1.25,-62.25);box(.48,.28,.035,M.glass,-4.55,1.28,-62.19);box(.3,.025,.02,M.red,-4.55,1.18,-62.16);
+ const diagGlow=new THREE.PointLight(0x4e9bb0,.55,3,2);diagGlow.position.set(-4.65,1.5,-62.1);scene.add(diagGlow);dynamicLights.push({light:diagGlow,base:.55,speed:2.7,phase:1.1});
+ box(.42,.06,.42,M.black,-6.35,.42,-60.1);box(.08,.38,.08,M.metal,-6.35,.22,-60.1);
+ addSolid(-5.85,-62.15,1.8,.72,'diagnostics bench');addSolid(-4.55,-62.25,.7,.35,'diagnostics screen');
+ // Staff locker branch: numbered lockers, a maintenance cart and a dropped access badge.
+ for(let i=0;i<4;i++){const x=4.05+i*.78;box(.62,1.85,.22,M.wallDark,x,1.0,-62.55);box(.5,1.62,.05,M.metal,x,1.02,-62.39);box(.04,.12,.025,M.yellow,x+.16,1.56,-62.35);box(.025,.2,.025,M.black,x-.16,1.05,-62.35);}
+ box(1.0,.12,.55,M.black,5.95,.55,-59.35);box(.82,.06,.4,M.metal,5.95,.64,-59.35);
+ for(const x of [5.55,6.35]){cylinder(.12,.12,.06,M.black,x,.18,-59.55,scene,10);cylinder(.12,.12,.06,M.black,x,.18,-59.15,scene,10);}
+ box(.22,.025,.14,M.yellow,4.45,.08,-60.25);box(.14,.015,.1,M.white,4.45,.1,-60.25);
+ addSolid(5.95,-59.35,1.15,.7,'maintenance cart');
  box(7.25,4.2,.24,M.wallDark,0,1.95,-70.15);
  box(7.2,.18,19,M.black,0,4.05,-60.5);
  for(const x of [-3.25,3.25]){
@@ -675,30 +692,30 @@ function interact(){
 
  if(nearby==='wallDiagnostic'){
   discoveredWallClues.add('diag');
-  showStory(['牆上的字不像設備標示，更像有人在黑暗裡匆忙刻下的提醒。','「封鎖不是為了阻止外面的人進來。」','最後一筆向內延伸——寫字的人當時正看著維修層深處。'],'WALL TRACE / HANDWRITTEN');
-  updateMission('調查維修層','可先探索兩側支線，再調查電源、終端與技師紀錄。');return;
+  toast('牆面刻痕：封鎖程序可能是從設施內部啟動的。');
+  updateMission('調查維修層','可探索兩側支線，留意牆面標記與散落的設備。');return;
  }
  if(nearby==='wallLocker'){
   discoveredWallClues.add('locker');
-  showStory(['右側牆面有一道被擦過的標記，底下仍看得見幾個字：S-07。','如果樣本真的已經轉移，為什麼有人要特地提醒「不要送到下層」？','除非轉移紀錄是假的，或者……樣本從來就不是被運送的那一個。'],'WALL TRACE / SCRATCHED WARNING');
+  toast('刮痕下仍殘留 S-07 字樣，與轉移紀錄不一致。');
   updateMission('比對現場線索','牆上的警告與觀察區的轉移紀錄互相矛盾。');return;
  }
  if(nearby==='maintenancePower'){
   chapter3Power=true;chapter3.power.visible=false;$('sys').textContent='MAINTENANCE POWER ROUTED';
   updateMission('讀取維修終端','電力已重新導通。前往通道右側的維修終端，確認升降梯故障原因。');
-  showStory(['配電箱的指示燈全亮了，但走廊盡頭的升降梯仍然沒有反應。','我摸了摸開關旁邊的灰塵，只有最近被扳動的位置是乾淨的。','這裡有人活動過，而且他知道怎麼讓監控紀錄看起來像是設備故障。'],'INTERNAL NOTE / POWER ROUTED');return;
+  toast('維修電源已恢復。升降梯仍被手動鎖定。');return;
  }
  if(nearby==='maintenanceConsole'){
   if(!chapter3Power){toast('終端無回應：請先接通維修電源');return}
   chapter3Console=true;chapter3.console.visible=false;$('sys').textContent='SERVICE TERMINAL ONLINE';
   updateMission('回收技師紀錄','終端顯示升降梯被手動鎖定。到左側工作台尋找值班技師的紀錄。');
-  showStory(['終端紀錄顯示，升降梯是從 B-07 控制台手動鎖定的。','時間戳記比封鎖程序晚了三分鐘。','這不是系統故障，是有人在封鎖開始後，仍然留在這裡操作設備。'],'INTERNAL NOTE / TERMINAL');return;
+  showStory(['終端紀錄顯示，升降梯是從 B-07 控制台手動鎖定的。','時間戳記比封鎖程序晚了三分鐘。有人在封鎖開始後，仍留在這裡操作設備。'],'INTERNAL NOTE / TERMINAL');return;
  }
  if(nearby==='maintenanceLog'){
   if(!chapter3Console){toast('工作台的加密抽屜尚未解鎖：先讀取維修終端');return}
   chapter3Log=true;chapter3.log.visible=false;$('sys').textContent='TECHNICIAN LOG RECOVERED';
   updateMission('解除服務升降梯','技師紀錄已回收。前往維修層盡頭，解除服務升降梯的鎖定。');
-  showStory(['紙張邊緣沾著油污，最後幾行卻寫得異常用力。','「如果七號樣本抵達這裡，千萬不要搭乘下行升降梯。」','我盯著這句話看了幾秒。這不像是寫給維修人員的操作提醒，更像是寫給某個即將抵達這裡的人。'],'INTERNAL NOTE / TECHNICIAN LOG');return;
+  showStory(['紙張邊緣沾著油污，最後幾行卻寫得異常用力。','「如果七號樣本抵達這裡，千萬不要搭乘下行升降梯。」','這不像一般的操作提醒，更像是寫給某個即將抵達這裡的人。'],'INTERNAL NOTE / TECHNICIAN LOG');return;
  }
  if(nearby==='serviceLift'){
   if(!chapter3Power||!chapter3Console||!chapter3Log){toast('升降梯仍處於封鎖狀態：請完成維修電源、終端與技師紀錄');return}
