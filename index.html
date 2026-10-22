@@ -516,7 +516,7 @@ function update(dt){
    // Move relative to camera, but rotate the character toward the actual travel direction.
    // This avoids the old camera-yaw/side-input mismatch that made turning feel slippery.
    const moveX=fx*forward+rx*side,moveZ=fz*forward+rz*side;
-   const targetYaw=Math.atan2(moveX,moveZ);
+   const targetYaw=Math.atan2(-moveX,-moveZ);
    const angleDelta=Math.atan2(Math.sin(targetYaw-player.rotation.y),Math.cos(targetYaw-player.rotation.y));
    player.rotation.y+=angleDelta*(1-Math.exp(-dt*(runHeld?13:9)));
    const t=clock.elapsedTime*(runHeld?13:8.5);
