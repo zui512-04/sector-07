@@ -474,7 +474,7 @@ function interact(){
  if(nearby==='door'){
    if(!hasCard){toast('門禁拒絕：需要有效門禁卡');return}
    if(!readNote){toast('建議先讀取研究桌上的紀錄');return}
-   doorOpen=true;world.doorPanel.visible=false;if(world.exitSign)world.exitSign.visible=false;$('sys').textContent='EXIT UNLOCKED';
+   doorOpen=true;if(world.door&&world.door.children[0])world.door.children[0].visible=false;if(world.doorPanel)world.doorPanel.visible=false;if(world.exitSign)world.exitSign.visible=false;$('sys').textContent='EXIT UNLOCKED';
    updateMission('出口已開啟','穿過出口，完成本次探索。');toast('門鎖解除。出口已開啟。');
    setTimeout(()=>{$('endScreen').style.display='flex'},1200);return;
  }
@@ -562,7 +562,6 @@ function update(dt){
    const fx=-Math.sin(yaw),fz=-Math.cos(yaw),rx=Math.cos(yaw),rz=-Math.sin(yaw);
    const oldX=player.position.x,oldZ=player.position.z;
    let nx=Math.max(-2.85,Math.min(2.85,oldX+(fx*forward+rx*side)*speed*dt));
-   let nz=Math.max(-32.5,Math.min(10,oldZ+(fz*forward+rz*side)*speed*dt));
    // Test X and Z independently against the last safe position. This lets the player slide around furniture corners.
    if(collidesAt(nx,oldZ))nx=oldX;
    let safeZ=Math.max(-32.5,Math.min(10,oldZ+(fz*forward+rz*side)*speed*dt));
