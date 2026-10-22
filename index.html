@@ -34,6 +34,13 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080907;col
 .caseState{font-size:9px;color:#d1a84f;letter-spacing:1px;margin-left:auto;white-space:nowrap}
 #toast{position:fixed;z-index:9;top:32%;left:50%;transform:translate(-50%,-8px);padding:11px 15px;max-width:86%;width:max-content;text-align:center;background:#11120fee;border:1px solid #9b7b3c;color:#f1eee5;font-size:12px;letter-spacing:.3px;opacity:0;transition:.22s;pointer-events:none}
 #toast.show{opacity:1;transform:translate(-50%,0)}
+#storyPanel{position:fixed;z-index:12;left:50%;bottom:calc(env(safe-area-inset-bottom) + 122px);transform:translateX(-50%);width:min(560px,calc(100% - 32px));padding:15px 17px;background:linear-gradient(135deg,#111915f2,#080c0df5);border:1px solid #a58a55a8;box-shadow:0 12px 40px #0009;display:none;color:#e8e5da;backdrop-filter:blur(12px)}
+#storyPanel.show{display:block;animation:storyIn .24s ease-out}
+#storyPanel .storyKicker{font-size:9px;letter-spacing:2px;color:#d4b56d;margin-bottom:8px}
+#storyPanel .storyText{font-size:13px;line-height:1.85;white-space:pre-line}
+#storyPanel .storyFoot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px;color:#9eaa9f;font-size:10px}
+#storyContinue{background:#d2b26b;color:#151710;border:0;padding:8px 13px;font:inherit;font-weight:700;letter-spacing:.5px}
+@keyframes storyIn{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
 #bottom{position:fixed;z-index:5;left:0;right:0;bottom:0;padding:0 16px calc(env(safe-area-inset-bottom) + 15px);display:flex;align-items:flex-end;justify-content:space-between;pointer-events:none}
 #joy{width:132px;height:132px;position:relative;pointer-events:auto;touch-action:none;flex:none}
 #base{position:absolute;inset:10px;border:1px solid #9b875d65;border-radius:50%;background:#25231970;box-shadow:inset 0 0 28px #d1a84f12}
@@ -162,6 +169,7 @@ button{max-width:100%}
  <p class="warning">提示：控制終端是額外線索，不影響完成本章。調查物件時，靠近後按下「互動」。</p>
 </div></div>
 <div id="toast"></div>
+<div id="storyPanel" role="dialog" aria-live="polite"><div class="storyKicker" id="storyKicker">PERSONAL LOG / INTERNAL MONOLOGUE</div><div class="storyText" id="storyText"></div><div class="storyFoot"><span id="storyHint">思緒紀錄</span><button id="storyContinue">繼續探索　↗</button></div></div>
 <div id="lookHelp">拖曳右側畫面<br>旋轉視角</div>
 <div id="bottom">
  <div id="joy"><div id="base"></div><div id="knob"></div><div id="hint">MOVE / 移動</div></div>
@@ -189,6 +197,7 @@ const $=id=>document.getElementById(id);
 const game=$('game');
 let scene,camera,renderer,player,flashlight,flashTarget,started=false,flashOn=true,hasCard=false,readNote=false,doorOpen=false,nearby=null,toastTimer;
 let yaw=0,pitch=.12,joyX=0,joyY=0,dragging=false,lastX=0,lastY=0,runHeld=false;
+let storyQueue=[],storyOpen=false;const discoveredWallClues=new Set();
 let enemy=null,enemyState="patrol",enemyDir=1,enemyCaught=false,threatCooldown=0,heardRun=0;
 const clock=new THREE.Clock();
 const colliders=[];
@@ -279,8 +288,18 @@ function makeChapterTwo(){
 function makeChapterThree(){
  // Chapter 3: maintenance level, a narrow service wing with hazard markings and emergency lighting.
  box(7.2,.22,19,M.floor,0,-.16,-60.5);
- box(.22,4.2,19,M.wallDark,-3.62,1.95,-60.5);
- box(.22,4.2,19,M.wallDark,3.62,1.95,-60.5);
+ // Openings in both walls lead to optional maintenance side rooms.
+ box(.22,4.2,8.0,M.wallDark,-3.62,1.95,-55.1);box(.22,4.2,8.6,M.wallDark,-3.62,1.95,-65.7);
+ box(.22,4.2,8.0,M.wallDark,3.62,1.95,-55.1);box(.22,4.2,8.6,M.wallDark,3.62,1.95,-65.7);
+ for(const x of [-5.25,5.25]){
+  box(4.15,.22,5.2,M.floor,x,-.16,-60.5);box(4.15,.18,5.2,M.black,x,4.05,-60.5);
+  box(.2,4.2,5.2,M.wallDark,x<0?-7.32:7.32,1.95,-60.5);
+  box(4.2,4.2,.2,M.wallDark,x,1.95,-63.1);box(4.2,4.2,.2,M.wallDark,x,1.95,-57.9);
+ }
+ const wallClueA=makeLitSign('02:17 / LOCKDOWN FROM INSIDE',-3.48,2.25,-56.8,2.55,.32);wallClueA.rotation.y=Math.PI/2;
+ const wallClueB=makeLitSign('S-07 / DO NOT SEND BELOW',3.48,2.2,-64.2,2.25,.32);wallClueB.rotation.y=-Math.PI/2;
+ makeLitSign('DIAGNOSTICS / OPTIONAL',-5.25,2.35,-60.2,2.5,.34);
+ makeLitSign('STAFF LOCKER / B-07',5.25,2.35,-60.2,2.2,.34);
  box(7.25,4.2,.24,M.wallDark,0,1.95,-70.15);
  box(7.2,.18,19,M.black,0,4.05,-60.5);
  for(const x of [-3.25,3.25]){
@@ -591,6 +610,17 @@ function makeRoom(){
 }
 function updateMission(title,txt){$('missionTitle').textContent=title;$('missionText').textContent=txt}
 function toast(msg){$('toast').textContent=msg;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2200)}
+function showStory(lines,kicker='PERSONAL LOG / INTERNAL MONOLOGUE'){
+ storyQueue=Array.isArray(lines)?lines.slice():[lines];storyOpen=true;
+ $('storyKicker').textContent=kicker;$('storyText').textContent=storyQueue.shift()||'';
+ $('storyPanel').classList.add('show');started=false;
+}
+function advanceStory(){
+ if(!storyOpen)return;
+ if(storyQueue.length){$('storyText').textContent=storyQueue.shift();return}
+ storyOpen=false;$('storyPanel').classList.remove('show');started=true;
+}
+$('storyContinue').addEventListener('click',advanceStory);
 function setFlash(v){flashOn=v;flashlight.visible=v;$('flash').classList.toggle('active',v);toast(v?'手電筒已開啟':'手電筒已關閉')}
 function distanceTo(obj){return obj?player.position.distanceTo(obj.position):999}
 function findNearby(){
@@ -607,9 +637,11 @@ function findNearby(){
  else if(chapter===3&&!chapter3Console&&chapter3.console&&distanceTo(chapter3.console)<2.7)nearby='maintenanceConsole';
  else if(chapter===3&&!chapter3Log&&chapter3.log&&distanceTo(chapter3.log)<2.6)nearby='maintenanceLog';
  else if(chapter===3&&chapter3.exit&&distanceTo(chapter3.exit)<3.1)nearby='serviceLift';
+ else if(chapter===3&&!discoveredWallClues.has('diag')&&Math.hypot(player.position.x+5.25,player.position.z+60.5)<2.2)nearby='wallDiagnostic';
+ else if(chapter===3&&!discoveredWallClues.has('locker')&&Math.hypot(player.position.x-5.25,player.position.z+60.5)<2.2)nearby='wallLocker';
  else if(chapter===1&&world.door&&distanceTo(world.door)<3.2)nearby='door';
  $('interact').classList.toggle('active',!!nearby);
- $('interact').querySelector('span:last-child').textContent=nearby?'使用':'互動';
+ $('interact').querySelector('span:last-child').textContent=nearby?(nearby.startsWith('wall')?'查看':'使用'):'互動';
 }
 function renderCaseFile(){
  $('stateCard').textContent=hasCard?'已取得':'未取得';
@@ -625,7 +657,7 @@ function renderCaseFile(){
 function interact(){
  findNearby();
  if(nearby==='power'){
-  chapter2Power=true;chapter2.power.visible=false;$('sys').textContent='AUX POWER RESTORED';updateMission('啟動觀察終端','備用電源已接通。前往右側觀察終端，讀取七號樣本的狀態。');toast('備用電源已恢復。部分觀察設備重新啟動。');return;
+  chapter2Power=true;chapter2.power.visible=false;$('sys').textContent='AUX POWER RESTORED';updateMission('啟動觀察終端','備用電源已接通。前往右側觀察終端，讀取七號樣本的狀態。');showStory(['電源重新接通，頭頂的燈管一盞接一盞亮起。','這組開關被人刻意切斷，還留下二次操作的痕跡。','有人不想讓升降梯啟動。問題是，他在阻止我們下去，還是在阻止某樣東西上來？'],'INTERNAL NOTE / POWER ROUTED');return;
  }
  if(nearby==='console'){
   if(!chapter2Power){toast('終端無法啟動：需要先恢復備用電源');return}
@@ -641,6 +673,16 @@ function interact(){
  }
 
 
+ if(nearby==='wallDiagnostic'){
+  discoveredWallClues.add('diag');
+  showStory(['牆上的字不像設備標示，更像有人在黑暗裡匆忙刻下的提醒。','「封鎖不是為了阻止外面的人進來。」','最後一筆向內延伸——寫字的人當時正看著維修層深處。'],'WALL TRACE / HANDWRITTEN');
+  updateMission('調查維修層','可先探索兩側支線，再調查電源、終端與技師紀錄。');return;
+ }
+ if(nearby==='wallLocker'){
+  discoveredWallClues.add('locker');
+  showStory(['右側牆面有一道被擦過的標記，底下仍看得見幾個字：S-07。','如果樣本真的已經轉移，為什麼有人要特地提醒「不要送到下層」？','除非轉移紀錄是假的，或者……樣本從來就不是被運送的那一個。'],'WALL TRACE / SCRATCHED WARNING');
+  updateMission('比對現場線索','牆上的警告與觀察區的轉移紀錄互相矛盾。');return;
+ }
  if(nearby==='maintenancePower'){
   chapter3Power=true;chapter3.power.visible=false;$('sys').textContent='MAINTENANCE POWER ROUTED';
   updateMission('讀取維修終端','電力已重新導通。前往通道右側的維修終端，確認升降梯故障原因。');
@@ -650,13 +692,13 @@ function interact(){
   if(!chapter3Power){toast('終端無回應：請先接通維修電源');return}
   chapter3Console=true;chapter3.console.visible=false;$('sys').textContent='SERVICE TERMINAL ONLINE';
   updateMission('回收技師紀錄','終端顯示升降梯被手動鎖定。到左側工作台尋找值班技師的紀錄。');
-  toast('維修終端：升降梯鎖定指令來自 B-07 控制台。');return;
+  showStory(['終端紀錄顯示，升降梯是從 B-07 控制台手動鎖定的。','時間戳記比封鎖程序晚了三分鐘。','這不是系統故障，是有人在封鎖開始後，仍然留在這裡操作設備。'],'INTERNAL NOTE / TERMINAL');return;
  }
  if(nearby==='maintenanceLog'){
   if(!chapter3Console){toast('工作台的加密抽屜尚未解鎖：先讀取維修終端');return}
   chapter3Log=true;chapter3.log.visible=false;$('sys').textContent='TECHNICIAN LOG RECOVERED';
   updateMission('解除服務升降梯','技師紀錄已回收。前往維修層盡頭，解除服務升降梯的鎖定。');
-  toast('技師紀錄：「如果七號樣本抵達這裡，千萬不要搭乘下行升降梯。」');return;
+  showStory(['紙張邊緣沾著油污，最後幾行卻寫得異常用力。','「如果七號樣本抵達這裡，千萬不要搭乘下行升降梯。」','我盯著這句話看了幾秒。這不像是寫給維修人員的操作提醒，更像是寫給某個即將抵達這裡的人。'],'INTERNAL NOTE / TECHNICIAN LOG');return;
  }
  if(nearby==='serviceLift'){
   if(!chapter3Power||!chapter3Console||!chapter3Log){toast('升降梯仍處於封鎖狀態：請完成維修電源、終端與技師紀錄');return}
@@ -699,7 +741,7 @@ function interact(){
  toast('附近沒有可互動的物件');
 }
 function startChapterThree(){
- chapter=3;chapter3Power=false;chapter3Console=false;chapter3Log=false;started=true;
+ chapter=3;chapter3Power=false;chapter3Console=false;chapter3Log=false;discoveredWallClues.clear();started=true;
  $('endScreen').style.display='none';$('caughtScreen').style.display='none';$('dangerVignette').style.opacity='0';$('threat').classList.remove('alert','on');
  if(enemy){enemy.visible=false;enemy.position.set(20,0,20)}
  if(chapter2.backWall)chapter2.backWall.visible=false;
@@ -709,7 +751,7 @@ function startChapterThree(){
  $('caseTitle').textContent='第三章：地下維修層';$('sys').textContent='MAINTENANCE LEVEL / OFFLINE';
  $('endScreen').querySelector('.kicker').textContent='FACILITY 07 / MAINTENANCE LOG';
  updateMission('恢復維修層電力','穿過隔離門後進入地下維修層。先找到左側的維修電源箱。');
- toast('第三章開始：地下維修層。升降梯已被人為鎖定。');
+ showStory(['門在身後沉重地合上，聲音沿著狹窄的維修通道傳了很遠。','這裡的空氣比觀察區更冷，牆上卻留著新鮮的刮痕。有人最近來過，而且不想讓別人知道。','先別急著往前。左右兩側似乎都有維修支線，也許能找到升降梯被鎖定的原因。'],'CHAPTER 03 / MAINTENANCE LEVEL');
 }
 function startChapterTwo(){
  chapter=2;chapter2Power=false;chapter2Console=false;chapter2Log=false;started=true;doorOpen=true;hasCard=true;readNote=true;readTerminal=false;readRecorder=false;
@@ -811,7 +853,7 @@ function updateEnemy(dt){
  if(dist<1.25){enemyCaught=true;started=false;$('caughtScreen').style.display='flex';$('sys').textContent='OPERATOR LOST';$('dangerVignette').style.opacity='0';}
 }
 function update(dt){
- if(!started)return;
+ if(!started||storyOpen)return;
  const inputX=joyX,inputY=joyY;
  let forward=-inputY,side=inputX;
  if(keys.w||keys.ArrowUp)forward=1;if(keys.s||keys.ArrowDown)forward=-1;
@@ -822,7 +864,8 @@ function update(dt){
    const speed=runHeld?4.8:2.65;
    const fx=-Math.sin(yaw),fz=-Math.cos(yaw),rx=Math.cos(yaw),rz=-Math.sin(yaw);
    const oldX=player.position.x,oldZ=player.position.z;
-   let nx=Math.max(-2.85,Math.min(2.85,oldX+(fx*forward+rx*side)*speed*dt));
+   const xLimit=chapter===3?6.65:2.85;
+   let nx=Math.max(-xLimit,Math.min(xLimit,oldX+(fx*forward+rx*side)*speed*dt));
    // Test X and Z independently against the last safe position. This lets the player slide around furniture corners.
    if(collidesAt(nx,oldZ))nx=oldX;
    let safeZ=Math.max(chapter===3?-70.5:-51.5,Math.min(10,oldZ+(fz*forward+rz*side)*speed*dt));
