@@ -369,7 +369,7 @@ function makeChapterFour(){
  box(7.2,.22,25,M.floor,0,-.16,-84.5,g);box(4.15,.22,6.4,M.floor,-5.25,-.16,-84.4,g);box(4.15,.22,6.4,M.floor,5.25,-.16,-84.4,g);
  for(const x of [-3.62,3.62]){box(.22,4.2,6.2,M.wallDark,x,1.95,-76.2,g);box(.22,4.2,6.2,M.wallDark,x,1.95,-92.8,g);addSolid(x,-76.2,.28,6.2,'lower corridor wall');addSolid(x,-92.8,.28,6.2,'lower corridor wall');}
  for(const x of [-5.25,5.25]){box(4.15,.18,6.4,M.black,x,4.05,-84.4,g);box(.2,4.2,6.4,M.wallDark,x<0?-7.32:7.32,1.95,-84.4,g);box(4.2,4.2,.2,M.wallDark,x,1.95,-87.6,g);box(4.2,4.2,.2,M.wallDark,x,1.95,-81.2,g);addSolid(x<0?-7.32:7.32,-84.4,.24,6.4,'containment side wall');addSolid(x,-87.6,4.2,.24,'containment room back wall');addSolid(x,-81.2,4.2,.24,'containment room front wall');}
- box(7.25,4.2,.24,M.wallDark,0,1.95,-97.05,g);box(7.2,.18,25,M.black,0,4.05,-84.5,g);
+ box(7.25,4.2,.24,M.wallDark,0,1.95,-97.05,g);box(7.2,.18,25,M.black,0,4.05,-84.5,g);addSolid(0,-97.05,7.25,.28,'lower sector back wall');
  for(let z=-74;z>=-95;z-=3){box(5.8,.018,.025,M.trim,0,-.025,z,g);for(let i=0;i<5;i++)box(.18,.015,.34,M.yellow,-2.7+i*.22,-.018,z-.6,g);}
  for(const x of [-3.2,3.2])for(let z=-75;z>=-94;z-=3){box(.12,.12,.5,M.metal,x,3.65,z,g);box(.08,.08,.4,M.yellow,x,3.52,z,g);}
  const s1=makeLitSign('LOWER CONTAINMENT / C-LEVEL',0,3.2,-73.15,3.1,.42);g.add(s1);const s2=makeLitSign('BIOHAZARD / NO ENTRY',-5.25,2.45,-81.32,2.5,.34);g.add(s2);const s3=makeLitSign('SPECIMEN ARCHIVE / C-07',5.25,2.45,-81.32,2.5,.34);g.add(s3);
