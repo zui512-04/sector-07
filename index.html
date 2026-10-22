@@ -208,7 +208,8 @@ let readTerminal=false,readRecorder=false;
 let chapter=1,chapter2Power=false,chapter2Console=false,chapter2Log=false;
 const chapter2={power:null,console:null,log:null,exit:null,exitPanel:null,pod:null,backWall:null};
 let chapter3Power=false,chapter3Console=false,chapter3Log=false;
-const chapter3={power:null,console:null,log:null,exit:null,exitPanel:null};
+const chapter3={power:null,console:null,log:null,exit:null,exitPanel:null,evidence:null};
+ let chapter3EvidenceFound=false;
 const mat=(color,roughness=.8,metalness=.1,emissive=0,emissiveIntensity=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness,emissive,emissiveIntensity});
 const M={
  floor:mat(0x26323b,.92),wall:mat(0x3c4a53,.85),wallDark:mat(0x17232d,.9),metal:mat(0x657781,.45,.7),
@@ -315,6 +316,9 @@ function makeChapterThree(){
  for(let i=0;i<4;i++){const x=4.05+i*.78;box(.62,1.85,.22,M.wallDark,x,1.0,-62.55);box(.5,1.62,.05,M.metal,x,1.02,-62.39);box(.04,.12,.025,M.yellow,x+.16,1.56,-62.35);box(.025,.2,.025,M.black,x-.16,1.05,-62.35);}
  box(1.0,.12,.55,M.black,5.95,.55,-59.35);box(.82,.06,.4,M.metal,5.95,.64,-59.35);
  for(const x of [5.55,6.35]){cylinder(.12,.12,.06,M.black,x,.18,-59.55,scene,10);cylinder(.12,.12,.06,M.black,x,.18,-59.15,scene,10);}
+ chapter3.evidence=new THREE.Group();chapter3.evidence.position.set(5.05,.12,-62.05);scene.add(chapter3.evidence);
+ box(.34,.035,.24,M.black,0,0,0,chapter3.evidence);box(.23,.018,.14,M.yellow,0,.025,-.01,chapter3.evidence);box(.07,.02,.05,M.cyan,.1,.027,.045,chapter3.evidence);
+ for(let i=0;i<3;i++)box(.055,.012,.018,M.white,-.07+i*.07,.028,-.045,chapter3.evidence);
  box(.22,.025,.14,M.yellow,4.45,.08,-60.25);box(.14,.015,.1,M.white,4.45,.1,-60.25);
  addSolid(5.95,-59.35,1.15,.7,'maintenance cart');
  box(7.25,4.2,.24,M.wallDark,0,1.95,-70.15);
@@ -340,8 +344,8 @@ function makeChapterThree(){
  box(.7,.95,.18,M.black,0,0,0,chapter3.power);box(.5,.6,.05,M.metal,0,.04,-.12,chapter3.power);
  box(.26,.22,.06,M.yellow,0,.1,-.16,chapter3.power);box(.08,.4,.06,M.red,-.16,.04,-.17,chapter3.power);
  for(let i=0;i<3;i++)box(.1,.05,.03,i===0?M.red:M.green,.16,.24-i*.16,-.17,chapter3.power);
- chapter3.console=new THREE.Group();chapter3.console.position.set(2.2,.9,-61.1);chapter3.console.rotation.y=Math.PI;scene.add(chapter3.console);
- addSolid(2.2,-61.1,1.15,.8,'maintenance terminal');
+ chapter3.console=new THREE.Group();chapter3.console.position.set(2.2,.9,-56.65);chapter3.console.rotation.y=Math.PI;scene.add(chapter3.console);
+ addSolid(2.2,-56.65,1.15,.8,'maintenance terminal');
  box(1.05,1.4,.5,M.black,0,0,0,chapter3.console);box(.78,.56,.04,M.glass,0,.4,-.28,chapter3.console);
  box(.56,.035,.025,M.cyan,0,.52,-.31,chapter3.console);box(.42,.025,.025,M.trim,0,.4,-.31,chapter3.console);
  for(let i=0;i<4;i++)box(.1,.07,.04,[M.red,M.yellow,M.green,M.cyan][i],-.22+i*.15,-.18,-.3,chapter3.console);
@@ -653,6 +657,7 @@ function findNearby(){
  else if(chapter===3&&!chapter3Power&&chapter3.power&&distanceTo(chapter3.power)<2.7)nearby='maintenancePower';
  else if(chapter===3&&!chapter3Console&&chapter3.console&&distanceTo(chapter3.console)<2.7)nearby='maintenanceConsole';
  else if(chapter===3&&!chapter3Log&&chapter3.log&&distanceTo(chapter3.log)<2.6)nearby='maintenanceLog';
+ else if(chapter===3&&!chapter3EvidenceFound&&chapter3.evidence&&Math.hypot(player.position.x-chapter3.evidence.position.x,player.position.z-chapter3.evidence.position.z)<1.65)nearby='lockerEvidence';
  else if(chapter===3&&chapter3.exit&&distanceTo(chapter3.exit)<3.1)nearby='serviceLift';
  else if(chapter===3&&!discoveredWallClues.has('diag')&&Math.hypot(player.position.x+6.1,player.position.z+60.5)<1.9)nearby='wallDiagnostic';
  else if(chapter===3&&!discoveredWallClues.has('locker')&&Math.hypot(player.position.x-6.1,player.position.z+60.5)<1.9)nearby='wallLocker';
@@ -700,6 +705,11 @@ function interact(){
   toast('刮痕下仍殘留 S-07 字樣，與轉移紀錄不一致。');
   updateMission('比對現場線索','牆上的警告與觀察區的轉移紀錄互相矛盾。');return;
  }
+ if(nearby==='lockerEvidence'){
+  chapter3EvidenceFound=true;chapter3.evidence.visible=false;$('sys').textContent='UNREGISTERED ACCESS TOKEN';
+  toast('取得未登記的維修識別片。上面的時間戳記晚於封鎖開始。');
+  updateMission('比對額外證據','識別片不是必要任務，但它證明封鎖開始後仍有人進出維修層。');return;
+ }
  if(nearby==='maintenancePower'){
   chapter3Power=true;chapter3.power.visible=false;$('sys').textContent='MAINTENANCE POWER ROUTED';
   updateMission('讀取維修終端','電力已重新導通。前往通道右側的維修終端，確認升降梯故障原因。');
@@ -721,7 +731,7 @@ function interact(){
   if(!chapter3Power||!chapter3Console||!chapter3Log){toast('升降梯仍處於封鎖狀態：請完成維修電源、終端與技師紀錄');return}
   if(chapter3.exitPanel)chapter3.exitPanel.visible=false;
   $('sys').textContent='CHAPTER 03 COMPLETE';
-  $('endingSummary').textContent='第三章完成。你恢復地下維修層電力、查明升降梯遭到手動鎖定，並回收值班技師留下的警告。紀錄最後一行被反覆覆寫，只剩下：「不要讓它抵達下層。」';
+  $('endingSummary').textContent='第三章完成。你恢復地下維修層電力、查明升降梯遭到手動鎖定，並回收值班技師留下的警告。紀錄最後一行被反覆覆寫，只剩下：「不要讓它抵達下層。」'+(chapter3EvidenceFound?'\n\n額外證據：未登記的維修識別片顯示，封鎖開始後仍有人進出 B-07。這個人沒有出現在值班名單上。':'\n\n支線證據尚未回收。員工置物室裡可能還留著被遺漏的東西。');
   $('endScreen').querySelector('.kicker').textContent='FACILITY 07 / MAINTENANCE LOG';
   $('endScreen').querySelector('h2').textContent='地下維修層調查完成';
   $('again').textContent='重新探索第一章';
@@ -764,7 +774,8 @@ function startChapterThree(){
  if(chapter2.backWall)chapter2.backWall.visible=false;
  if(chapter2.exit)chapter2.exit.visible=false;
  player.position.set(0,0,-52.2);player.rotation.y=0;yaw=0;pitch=.12;joyX=0;joyY=0;runHeld=false;
- chapter3.power.visible=true;chapter3.console.visible=true;chapter3.log.visible=true;chapter3.exit.visible=true;chapter3.exitPanel.visible=true;
+ chapter3EvidenceFound=false;
+  chapter3.power.visible=true;chapter3.console.visible=true;chapter3.log.visible=true;chapter3.exit.visible=true;chapter3.exitPanel.visible=true;if(chapter3.evidence)chapter3.evidence.visible=true;
  $('caseTitle').textContent='第三章：地下維修層';$('sys').textContent='MAINTENANCE LEVEL / OFFLINE';
  $('endScreen').querySelector('.kicker').textContent='FACILITY 07 / MAINTENANCE LOG';
  updateMission('恢復維修層電力','穿過隔離門後進入地下維修層。先找到左側的維修電源箱。');
@@ -781,7 +792,7 @@ function startChapterTwo(){
 function resetGame(){
  chapter=1;chapter2Power=false;chapter2Console=false;chapter2Log=false;chapter3Power=false;chapter3Console=false;chapter3Log=false;
  started=true;hasCard=false;readNote=false;readTerminal=false;readRecorder=false;doorOpen=false;yaw=0;pitch=.12;joyX=0;joyY=0;enemyState='patrol';enemyDir=1;enemyCaught=false;threatCooldown=0;if(enemy){enemy.position.set(20,0,20);enemy.visible=false;enemy.rotation.y=0;} $('caughtScreen').style.display='none';$('dangerVignette').style.opacity='0';$('threat').classList.remove('alert','on');$('threat').textContent='THREAT LEVEL / LOW';
- player.position.set(0,0,7);player.rotation.y=0;if(chapter2.backWall)chapter2.backWall.visible=true;if(chapter2.exit)chapter2.exit.visible=true;if(chapter3.power)chapter3.power.visible=true;if(chapter3.console)chapter3.console.visible=true;if(chapter3.log)chapter3.log.visible=true;if(chapter3.exit)chapter3.exit.visible=true;world.card.visible=true;world.note.visible=true;if(world.recorder)world.recorder.visible=true;if(chapter2.power)chapter2.power.visible=true;if(chapter2.console)chapter2.console.visible=true;if(chapter2.log)chapter2.log.visible=true;if(chapter2.exitPanel)chapter2.exitPanel.visible=true;$('caseTitle').textContent='探索檔案';$('endScreen').querySelector('.kicker').textContent='FACILITY 07 / LOG CLOSED';$('endScreen').querySelector('h2').textContent='成功離開禁區';$('again').textContent='進入第二章　/　觀察區 ↗';if(world.door&&world.door.children[0])world.door.children[0].visible=true;world.doorPanel.visible=true;renderCaseFile();
+ player.position.set(0,0,7);player.rotation.y=0;if(chapter2.backWall)chapter2.backWall.visible=true;if(chapter2.exit)chapter2.exit.visible=true;if(chapter3.power)chapter3.power.visible=true;if(chapter3.console)chapter3.console.visible=true;if(chapter3.log)chapter3.log.visible=true;if(chapter3.exit)chapter3.exit.visible=true;if(chapter3.evidence)chapter3.evidence.visible=true;chapter3EvidenceFound=false;world.card.visible=true;world.note.visible=true;if(world.recorder)world.recorder.visible=true;if(chapter2.power)chapter2.power.visible=true;if(chapter2.console)chapter2.console.visible=true;if(chapter2.log)chapter2.log.visible=true;if(chapter2.exitPanel)chapter2.exitPanel.visible=true;$('caseTitle').textContent='探索檔案';$('endScreen').querySelector('.kicker').textContent='FACILITY 07 / LOG CLOSED';$('endScreen').querySelector('h2').textContent='成功離開禁區';$('again').textContent='進入第二章　/　觀察區 ↗';if(world.door&&world.door.children[0])world.door.children[0].visible=true;world.doorPanel.visible=true;renderCaseFile();
  $('sys').textContent='CONTAINMENT ACTIVE';if(world.exitSign)world.exitSign.visible=true;updateMission('尋找門禁卡','前往走廊深處，尋找門禁卡並打開出口。');
  $('endScreen').style.display='none';toast('任務重新開始');
 }
