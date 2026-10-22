@@ -637,7 +637,7 @@ function interact(){
  }
  if(nearby==='quarantineExit'){
   if(!chapter2Power||!chapter2Console||!chapter2Log){toast('隔離門拒絕開啟：請完成電源、終端與紀錄回收');return}
-  if(chapter2.exitPanel)chapter2.exitPanel.visible=false;$('sys').textContent='CHAPTER 02 COMPLETE';$('endingSummary').textContent='第二章完成。你恢復觀察區電源、啟動監控終端，並找回七號樣本的轉移紀錄。最後一行只有短短一句：「樣本仍在設施內。」';$('endScreen').querySelector('.kicker').textContent='FACILITY 07 / OBSERVATION LOG';$('endScreen').querySelector('h2').textContent='觀察區調查完成';$('again').textContent='重新探索第二章';updateMission('隔離門已解除','觀察區調查完成。新的紀錄指出，樣本仍留在設施內。');toast('隔離門已解除。第二章調查完成。');setTimeout(()=>$('endScreen').style.display='flex',900);return;
+  if(chapter2.exitPanel)chapter2.exitPanel.visible=false;$('sys').textContent='CHAPTER 02 COMPLETE';$('endingSummary').textContent='第二章完成。你恢復觀察區電源、啟動監控終端，並找回七號樣本的轉移紀錄。最後一行只有短短一句：「樣本仍在設施內。」';$('endScreen').querySelector('.kicker').textContent='FACILITY 07 / OBSERVATION LOG';$('endScreen').querySelector('h2').textContent='觀察區調查完成';$('again').textContent='進入第三章　/　地下維修層 ↗';updateMission('隔離門已解除','觀察區調查完成。新的紀錄指出，樣本仍留在設施內。');toast('隔離門已解除。第二章調查完成。');setTimeout(()=>$('endScreen').style.display='flex',900);return;
  }
 
 
