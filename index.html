@@ -644,9 +644,30 @@ function setupControls(){
  function endJoy(e){if(e.pointerId===joyPointer){joyPointer=null;joyX=0;joyY=0;knob.style.transform='translate(0,0)'}}
  joy.addEventListener('pointerup',endJoy);joy.addEventListener('pointercancel',endJoy);
  const canvas=renderer.domElement;
- canvas.addEventListener('pointerdown',e=>{if(e.clientX<innerWidth*.34)return;dragging=true;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture(e.pointerId)});
- canvas.addEventListener('pointermove',e=>{if(!dragging)return;const dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;yaw-=dx*.006;pitch=Math.max(-.08,Math.min(.58,pitch+dy*.0035))});
- const endLook=()=>dragging=false;canvas.addEventListener('pointerup',endLook);canvas.addEventListener('pointercancel',endLook);
+ // Explicit single-pointer camera drag: avoids lost pointer events and accidental rotation from joystick multitouch.
+ canvas.style.touchAction='none';
+ let lookPointer=null;
+ canvas.addEventListener('pointerdown',e=>{
+   if(e.clientX<innerWidth*.34)return;
+   e.preventDefault();
+   lookPointer=e.pointerId;dragging=true;lastX=e.clientX;lastY=e.clientY;
+   try{canvas.setPointerCapture(e.pointerId)}catch(_){}
+ },{passive:false});
+ canvas.addEventListener('pointermove',e=>{
+   if(!dragging||e.pointerId!==lookPointer)return;
+   e.preventDefault();
+   const dx=e.clientX-lastX,dy=e.clientY-lastY;
+   lastX=e.clientX;lastY=e.clientY;
+   yaw-=dx*.006;
+   pitch=Math.max(-.08,Math.min(.58,pitch+dy*.0035));
+ },{passive:false});
+ function endLook(e){
+   if(e.pointerId!==lookPointer)return;
+   dragging=false;lookPointer=null;
+ }
+ canvas.addEventListener('pointerup',endLook);
+ canvas.addEventListener('pointercancel',endLook);
+ canvas.addEventListener('lostpointercapture',endLook);
  $('flash').addEventListener('click',()=>setFlash(!flashOn));
  $('run').addEventListener('pointerdown',e=>{e.preventDefault();runHeld=true;$('run').classList.add('active')});
  ['pointerup','pointercancel','pointerleave'].forEach(ev=>$('run').addEventListener(ev,()=>{runHeld=false;$('run').classList.remove('active')}));
