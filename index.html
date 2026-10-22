@@ -661,11 +661,11 @@ function interact(){
  }
  if(nearby==='console'){
   if(!chapter2Power){toast('終端無法啟動：需要先恢復備用電源');return}
-  chapter2Console=true;chapter2.console.visible=false;$('sys').textContent='OBSERVATION DATA ONLINE';updateMission('回收轉移紀錄','終端顯示樣本已被轉移。找到側邊工作台上的加密紀錄。');toast('觀察終端已啟動：樣本狀態為「轉移中止」。');return;
+  chapter2Console=true;chapter2.console.visible=false;$('sys').textContent='OBSERVATION DATA ONLINE';updateMission('回收轉移紀錄','終端顯示樣本已被轉移。找到側邊工作台上的加密紀錄。');showStory(['終端顯示：樣本轉移中止。','但監控時間軸在同一分鐘被刪去四十七秒，系統不會無故只刪掉這麼短的一段。','如果樣本沒有離開設施，那麼誰在封鎖期間修改了紀錄？'],'INTERNAL NOTE / OBSERVATION TERMINAL');return;
  }
  if(nearby==='sampleLog'){
   if(!chapter2Console){toast('紀錄托盤仍在鎖定狀態：先啟動觀察終端');return}
-  chapter2Log=true;chapter2.log.visible=false;$('sys').textContent='TRANSFER LOG RECOVERED';updateMission('解除隔離門','紀錄已回收。前往觀察區盡頭的隔離門，完成本區調查。');toast('加密紀錄：七號樣本並未離開設施。');return;
+  chapter2Log=true;chapter2.log.visible=false;$('sys').textContent='TRANSFER LOG RECOVERED';updateMission('解除隔離門','紀錄已回收。前往觀察區盡頭的隔離門，完成本區調查。');showStory(['紀錄的最後一行寫著：「七號樣本並未離開設施。」','我反覆比對時間戳記，發現這份紀錄是在封鎖後才建立的。','這不是事故前留下的報告，而是有人在事後想讓我們相信某件事。'],'INTERNAL NOTE / TRANSFER LOG');return;
  }
  if(nearby==='quarantineExit'){
   if(!chapter2Power||!chapter2Console||!chapter2Log){toast('隔離門拒絕開啟：請完成電源、終端與紀錄回收');return}
@@ -759,7 +759,7 @@ function startChapterTwo(){
  player.position.set(0,0,-35.7);player.rotation.y=0;yaw=0;pitch=.12;joyX=0;joyY=0;runHeld=false;
  if(world.card)world.card.visible=false;if(world.note)world.note.visible=false;if(world.recorder)world.recorder.visible=false;if(world.door&&world.door.children[0])world.door.children[0].visible=false;if(world.doorPanel)world.doorPanel.visible=false;if(world.exitSign)world.exitSign.visible=false;
  chapter2.power.visible=true;chapter2.console.visible=true;chapter2.log.visible=true;chapter2.exitPanel.visible=true;
- $('caseTitle').textContent='第二章：觀察區';$('sys').textContent='OBSERVATION ZONE / OFFLINE';updateMission('恢復觀察區電源','入口前方是觀察區。先找到左側維修架上的備用電源。');toast('第二章開始：觀察區。樣本紀錄出現異常。');
+ $('caseTitle').textContent='第二章：觀察區';$('sys').textContent='OBSERVATION ZONE / OFFLINE';updateMission('恢復觀察區電源','入口前方是觀察區。先找到左側維修架上的備用電源。');showStory(['門後是一間比走廊寬闊許多的觀察室，中央的收容艙仍亮著微弱的琥珀光。','玻璃沒有破裂，地面也沒有拖行痕跡。若樣本真的被轉移，這裡不該如此完整。','先恢復電源，再查清楚終端和轉移紀錄。這一次，我不打算只相信系統告訴我的答案。'],'CHAPTER 02 / OBSERVATION CHAMBER');
 }
 function resetGame(){
  chapter=1;chapter2Power=false;chapter2Console=false;chapter2Log=false;chapter3Power=false;chapter3Console=false;chapter3Log=false;
