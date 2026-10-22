@@ -300,8 +300,8 @@ function makeChapterThree(){
   addSolid(x<0?-7.32:7.32,-60.5,.24,5.2,'side room outer wall');
   addSolid(x,-63.1,4.2,.24,'side room back wall');addSolid(x,-57.9,4.2,.24,'side room front wall');
  }
- const wallClueA=makeLitSign('02:17 / LOCKDOWN FROM INSIDE',-3.48,2.25,-56.8,2.55,.32);wallClueA.rotation.y=Math.PI/2;
- const wallClueB=makeLitSign('S-07 / DO NOT SEND BELOW',3.48,2.2,-64.2,2.25,.32);wallClueB.rotation.y=-Math.PI/2;
+ const wallClueA=makeLitSign('02:17 / LOCKDOWN FROM INSIDE',-7.18,2.25,-60.5,2.55,.32);wallClueA.rotation.y=Math.PI/2;
+ const wallClueB=makeLitSign('S-07 / DO NOT SEND BELOW',7.18,2.2,-60.5,2.25,.32);wallClueB.rotation.y=-Math.PI/2;
  makeLitSign('DIAGNOSTICS / OPTIONAL',-5.25,2.35,-58.06,2.5,.34);
  makeLitSign('STAFF LOCKER / B-07',5.25,2.35,-58.06,2.2,.34);
  // Optional branch dressing: diagnostics bench, sample drawers and a flickering analyzer.
@@ -654,8 +654,8 @@ function findNearby(){
  else if(chapter===3&&!chapter3Console&&chapter3.console&&distanceTo(chapter3.console)<2.7)nearby='maintenanceConsole';
  else if(chapter===3&&!chapter3Log&&chapter3.log&&distanceTo(chapter3.log)<2.6)nearby='maintenanceLog';
  else if(chapter===3&&chapter3.exit&&distanceTo(chapter3.exit)<3.1)nearby='serviceLift';
- else if(chapter===3&&!discoveredWallClues.has('diag')&&Math.hypot(player.position.x+5.25,player.position.z+58.1)<3.1)nearby='wallDiagnostic';
- else if(chapter===3&&!discoveredWallClues.has('locker')&&Math.hypot(player.position.x-5.25,player.position.z+58.1)<3.1)nearby='wallLocker';
+ else if(chapter===3&&!discoveredWallClues.has('diag')&&Math.hypot(player.position.x+6.1,player.position.z+60.5)<1.9)nearby='wallDiagnostic';
+ else if(chapter===3&&!discoveredWallClues.has('locker')&&Math.hypot(player.position.x-6.1,player.position.z+60.5)<1.9)nearby='wallLocker';
  else if(chapter===1&&world.door&&distanceTo(world.door)<3.2)nearby='door';
  $('interact').classList.toggle('active',!!nearby);
  $('interact').querySelector('span:last-child').textContent=nearby?(nearby.startsWith('wall')?'查看':'使用'):'互動';
