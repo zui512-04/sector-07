@@ -417,9 +417,9 @@ function interact(){
  toast('附近沒有可互動的物件');
 }
 function resetGame(){
- hasCard=false;readNote=false;readTerminal=false;doorOpen=false;yaw=0;pitch=.12;joyX=0;joyY=0;enemyState='patrol';enemyDir=1;enemyCaught=false;threatCooldown=0;if(enemy){enemy.position.set(-1.25,0,-25.5);enemy.visible=true;enemy.rotation.y=0;} $('caughtScreen').style.display='none';$('dangerVignette').style.opacity='0';$('threat').classList.remove('alert','on');$('threat').textContent='THREAT LEVEL / LOW';
+ started=true;hasCard=false;readNote=false;readTerminal=false;doorOpen=false;yaw=0;pitch=.12;joyX=0;joyY=0;enemyState='patrol';enemyDir=1;enemyCaught=false;threatCooldown=0;if(enemy){enemy.position.set(-1.25,0,-25.5);enemy.visible=true;enemy.rotation.y=0;} $('caughtScreen').style.display='none';$('dangerVignette').style.opacity='0';$('threat').classList.remove('alert','on');$('threat').textContent='THREAT LEVEL / LOW';
  player.position.set(0,0,7);player.rotation.y=0;world.card.visible=true;world.note.visible=true;world.doorPanel.visible=true;renderCaseFile();
- $('sys').textContent='FACILITY OFFLINE';if(world.exitSign)world.exitSign.visible=true;updateMission('尋找門禁卡','前往走廊深處，尋找門禁卡並打開出口。');
+ $('sys').textContent='CONTAINMENT ACTIVE';if(world.exitSign)world.exitSign.visible=true;updateMission('尋找門禁卡','前往走廊深處，尋找門禁卡並打開出口。');
  $('endScreen').style.display='none';toast('任務重新開始');
 }
 function setupControls(){
